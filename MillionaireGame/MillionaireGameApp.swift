@@ -2,7 +2,7 @@
 //  MillionaireGameApp.swift
 //  MillionaireGame
 //
-//  Created by Amartya Karmakar on 2024-07-08.
+//  Created by Amartya Karmakar
 //
 
 import SwiftUI

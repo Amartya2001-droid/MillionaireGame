@@ -1,58 +1,64 @@
-# Millionaire Game App
+# MillionaireGame
 
-Welcome to the Millionaire Game App, a fun and interactive game where players answer questions to win virtual money. This app mimics the style of the popular TV show "Who Wants to Be a Millionaire".
-
-## Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+`MillionaireGame` is a SwiftUI iOS quiz app inspired by the "Who Wants to Be a Millionaire?" format. Players register, choose a genre, answer timed questions, use limited hints, and try to climb the prize ladder.
 
 ## Features
 
-- User registration and login
-- Select from five genres of questions: Science, Movies, Sports, Current Affairs, and Countries
-- Timed questions with decreasing time limits
-- Hints to eliminate two incorrect options
-- Score tracking and display
-- Fun and engaging user interface
+- SwiftUI-based iOS interface
+- Genre-based quiz rounds
+- 15-question game flow
+- Countdown timer with faster later rounds
+- 50:50 hint support
+- Prize ladder and results screen
 
-## Installation
+## Project Structure
 
-To run this project locally, follow these steps:
+- `MillionaireGame.xcodeproj` contains the Xcode project
+- `MillionaireGame/` contains the active app target source files and assets
+- Root-level duplicate Swift files may exist from earlier iterations of the project
 
-1. **Clone the repository**:
-   ```sh
-   git clone https://github.com/Amartya2001-droid/MillionaireGame.git
+## Requirements
 
-2. Navigate to the project directory:
-   cd MillionaireGame
-3.	Open the project in Xcode:
-   Double-click the MillionaireGame.xcodeproj file to open the project in Xcode.
-4.	Install dependencies:
-	•	Ensure you have all the necessary dependencies installed. You may use Swift Package Manager (SPM) for any external dependencies.
-5.	Run the app:
-	•	Select an iOS simulator or a connected device.
-	•	Click the Run button (or use the shortcut Cmd + R).
+- macOS with full Xcode installed
+- iOS Simulator or a physical iPhone/iPad for runtime testing
 
-Usage
+## Getting Started
 
-	1.	Register a new account:
-	•	On the home screen, select “Create a Bank Account” to register a new user.
-	•	Fill in the required details and create a username and password.
-	2.	Log in to your account:
-	•	On the home screen, select “Already a user? Sign In” to log in.
-	•	Enter your username and password to access the game.
-	3.	Select a genre:
-	•	Choose from Science, Movies, Sports, Current Affairs, and Countries.
-	4.	Answer questions:
-	•	Answer the questions within the given time limit.
-	•	Use hints if needed to eliminate two incorrect options.
-	5.	Check your score:
-	•	At the end of the game, see how much virtual money you have won.
+1. Clone the repository:
 
-Contributing
+```bash
+git clone https://github.com/Amartya2001-droid/MillionaireGame.git
+cd MillionaireGame
+```
 
-Contributions are welcome! If you have suggestions for improvements or new features, please open an issue or submit a pull request. 
+2. Open the project:
+
+```bash
+open MillionaireGame.xcodeproj
+```
+
+3. In Xcode, choose an iOS Simulator or connected device.
+
+4. Build and run with `Cmd + R`.
+
+## Current Status
+
+- The repository contains the app source and assets needed for the quiz experience.
+- Full end-to-end verification requires Xcode, because `xcodebuild` and the iOS Simulator are not available with Command Line Tools alone.
+
+## Gameplay
+
+1. Start from the main menu.
+2. Enter player details.
+3. Pick a genre.
+4. Answer questions before the timer runs out.
+5. Use up to three hints during a run.
+6. Reach the final question to win the top prize.
+
+## Contributing
+
+Issues and pull requests are welcome.
+
+## License
+
+No license has been added yet.

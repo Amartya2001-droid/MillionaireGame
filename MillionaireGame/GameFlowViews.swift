@@ -27,7 +27,13 @@ struct RegistrationView: View {
 
                     inputField(title: "First Name", text: $firstName, capitalization: .words)
                     inputField(title: "Last Name", text: $lastName, capitalization: .words)
-                    inputField(title: "Email", text: $email, capitalization: .never, keyboardType: .emailAddress)
+                    inputField(
+                        title: "Email",
+                        text: $email,
+                        capitalization: .never,
+                        keyboardType: .emailAddress,
+                        disableAutocorrection: true
+                    )
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Date of Birth")
@@ -96,7 +102,8 @@ struct RegistrationView: View {
         title: String,
         text: Binding<String>,
         capitalization: TextInputAutocapitalization = .sentences,
-        keyboardType: UIKeyboardType = .default
+        keyboardType: UIKeyboardType = .default,
+        disableAutocorrection: Bool = false
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
@@ -106,7 +113,7 @@ struct RegistrationView: View {
             TextField(title, text: text)
                 .textInputAutocapitalization(capitalization)
                 .keyboardType(keyboardType)
-                .autocorrectionDisabled(capitalization == .never)
+                .autocorrectionDisabled(disableAutocorrection)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
                 .background(Color.white.opacity(0.12))

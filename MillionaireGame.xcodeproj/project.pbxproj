@@ -11,6 +11,10 @@
 		AE9102F62C3CBA9C0049430B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9102F52C3CBA9C0049430B /* ContentView.swift */; };
 		AE9102F82C3CBA9E0049430B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AE9102F72C3CBA9E0049430B /* Assets.xcassets */; };
 		AE9102FB2C3CBA9E0049430B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AE9102FA2C3CBA9E0049430B /* Preview Assets.xcassets */; };
+		AE9103002C3CBA9E0049430B /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9102FF2C3CBA9E0049430B /* Models.swift */; };
+		AE9103022C3CBA9E0049430B /* QuestionBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9103012C3CBA9E0049430B /* QuestionBank.swift */; };
+		AE9103042C3CBA9E0049430B /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9103032C3CBA9E0049430B /* DesignSystem.swift */; };
+		AE9103062C3CBA9E0049430B /* GameFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9103052C3CBA9E0049430B /* GameFlowViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +23,10 @@
 		AE9102F52C3CBA9C0049430B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AE9102F72C3CBA9E0049430B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AE9102FA2C3CBA9E0049430B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		AE9102FF2C3CBA9E0049430B /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		AE9103012C3CBA9E0049430B /* QuestionBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionBank.swift; sourceTree = "<group>"; };
+		AE9103032C3CBA9E0049430B /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		AE9103052C3CBA9E0049430B /* GameFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameFlowViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +61,10 @@
 			children = (
 				AE9102F32C3CBA9C0049430B /* MillionaireGameApp.swift */,
 				AE9102F52C3CBA9C0049430B /* ContentView.swift */,
+				AE9102FF2C3CBA9E0049430B /* Models.swift */,
+				AE9103012C3CBA9E0049430B /* QuestionBank.swift */,
+				AE9103032C3CBA9E0049430B /* DesignSystem.swift */,
+				AE9103052C3CBA9E0049430B /* GameFlowViews.swift */,
 				AE9102F72C3CBA9E0049430B /* Assets.xcassets */,
 				AE9102F92C3CBA9E0049430B /* Preview Content */,
 			);
@@ -137,8 +149,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE9103042C3CBA9E0049430B /* DesignSystem.swift in Sources */,
 				AE9102F62C3CBA9C0049430B /* ContentView.swift in Sources */,
+				AE9103002C3CBA9E0049430B /* Models.swift in Sources */,
+				AE9103022C3CBA9E0049430B /* QuestionBank.swift in Sources */,
 				AE9102F42C3CBA9C0049430B /* MillionaireGameApp.swift in Sources */,
+				AE9103062C3CBA9E0049430B /* GameFlowViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

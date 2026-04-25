@@ -15,7 +15,19 @@
 		AE9103092C3CBA9E0049430B /* QuestionBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE91030A2C3CBA9E0049430B /* QuestionBank.swift */; };
 		AE91030B2C3CBA9E0049430B /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE91030C2C3CBA9E0049430B /* DesignSystem.swift */; };
 		AE91030D2C3CBA9E0049430B /* GameFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE91030E2C3CBA9E0049430B /* GameFlowViews.swift */; };
+		AE9103102C3CBA9E0049430B /* MillionaireGameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE91030F2C3CBA9E0049430B /* MillionaireGameTests.swift */; };
+		AE91031D2C3CBA9E0049430B /* GameRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE91031C2C3CBA9E0049430B /* GameRules.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AE9103162C3CBA9E0049430B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AE9102E82C3CBA9C0049430B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AE9102EF2C3CBA9C0049430B;
+			remoteInfo = MillionaireGame;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		AE9102F02C3CBA9C0049430B /* MillionaireGame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MillionaireGame.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -27,10 +39,20 @@
 		AE91030A2C3CBA9E0049430B /* QuestionBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionBank.swift; sourceTree = "<group>"; };
 		AE91030C2C3CBA9E0049430B /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		AE91030E2C3CBA9E0049430B /* GameFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameFlowViews.swift; sourceTree = "<group>"; };
+		AE91030F2C3CBA9E0049430B /* MillionaireGameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MillionaireGameTests.swift; sourceTree = "<group>"; };
+		AE9103112C3CBA9E0049430B /* MillionaireGameTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MillionaireGameTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE91031C2C3CBA9E0049430B /* GameRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRules.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		AE9102ED2C3CBA9C0049430B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AE9103132C3CBA9E0049430B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -44,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				AE9102F22C3CBA9C0049430B /* MillionaireGame */,
+				AE9103122C3CBA9E0049430B /* MillionaireGameTests */,
 				AE9102F12C3CBA9C0049430B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -52,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				AE9102F02C3CBA9C0049430B /* MillionaireGame.app */,
+				AE9103112C3CBA9E0049430B /* MillionaireGameTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -65,10 +89,19 @@
 				AE91030A2C3CBA9E0049430B /* QuestionBank.swift */,
 				AE91030C2C3CBA9E0049430B /* DesignSystem.swift */,
 				AE91030E2C3CBA9E0049430B /* GameFlowViews.swift */,
+				AE91031C2C3CBA9E0049430B /* GameRules.swift */,
 				AE9102F72C3CBA9E0049430B /* Assets.xcassets */,
 				AE9102F92C3CBA9E0049430B /* Preview Content */,
 			);
 			path = MillionaireGame;
+			sourceTree = "<group>";
+		};
+		AE9103122C3CBA9E0049430B /* MillionaireGameTests */ = {
+			isa = PBXGroup;
+			children = (
+				AE91030F2C3CBA9E0049430B /* MillionaireGameTests.swift */,
+			);
+			path = MillionaireGameTests;
 			sourceTree = "<group>";
 		};
 		AE9102F92C3CBA9E0049430B /* Preview Content */ = {
@@ -99,6 +132,24 @@
 			productReference = AE9102F02C3CBA9C0049430B /* MillionaireGame.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AE9103182C3CBA9E0049430B /* MillionaireGameTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AE91031B2C3CBA9E0049430B /* Build configuration list for PBXNativeTarget "MillionaireGameTests" */;
+			buildPhases = (
+				AE9103152C3CBA9E0049430B /* Sources */,
+				AE9103132C3CBA9E0049430B /* Frameworks */,
+				AE9103142C3CBA9E0049430B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AE9103172C3CBA9E0049430B /* PBXTargetDependency */,
+			);
+			name = MillionaireGameTests;
+			productName = MillionaireGameTests;
+			productReference = AE9103112C3CBA9E0049430B /* MillionaireGameTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -111,6 +162,10 @@
 				TargetAttributes = {
 					AE9102EF2C3CBA9C0049430B = {
 						CreatedOnToolsVersion = 15.4;
+					};
+					AE9103182C3CBA9E0049430B = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = AE9102EF2C3CBA9C0049430B;
 					};
 				};
 			};
@@ -128,6 +183,7 @@
 			projectRoot = "";
 			targets = (
 				AE9102EF2C3CBA9C0049430B /* MillionaireGame */,
+				AE9103182C3CBA9E0049430B /* MillionaireGameTests */,
 			);
 		};
 /* End PBXProject section */
@@ -142,6 +198,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AE9103142C3CBA9E0049430B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -151,6 +214,7 @@
 			files = (
 				AE91030B2C3CBA9E0049430B /* DesignSystem.swift in Sources */,
 				AE9102F62C3CBA9C0049430B /* ContentView.swift in Sources */,
+				AE91031D2C3CBA9E0049430B /* GameRules.swift in Sources */,
 				AE9103072C3CBA9E0049430B /* Models.swift in Sources */,
 				AE9103092C3CBA9E0049430B /* QuestionBank.swift in Sources */,
 				AE9102F42C3CBA9C0049430B /* MillionaireGameApp.swift in Sources */,
@@ -158,7 +222,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AE9103152C3CBA9E0049430B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE9103102C3CBA9E0049430B /* MillionaireGameTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AE9103172C3CBA9E0049430B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AE9102EF2C3CBA9C0049430B /* MillionaireGame */;
+			targetProxy = AE9103162C3CBA9E0049430B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		AE9102FC2C3CBA9E0049430B /* Debug */ = {
@@ -338,6 +418,56 @@
 			};
 			name = Release;
 		};
+		AE9103192C3CBA9E0049430B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T8K9L82F82;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@loader_path/Frameworks",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = None.MillionaireGameTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MillionaireGame.app/MillionaireGame";
+				TEST_TARGET_NAME = MillionaireGame;
+			};
+			name = Debug;
+		};
+		AE91031A2C3CBA9E0049430B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T8K9L82F82;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@loader_path/Frameworks",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = None.MillionaireGameTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MillionaireGame.app/MillionaireGame";
+				TEST_TARGET_NAME = MillionaireGame;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -355,6 +485,15 @@
 			buildConfigurations = (
 				AE9102FF2C3CBA9E0049430B /* Debug */,
 				AE9103002C3CBA9E0049430B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AE91031B2C3CBA9E0049430B /* Build configuration list for PBXNativeTarget "MillionaireGameTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE9103192C3CBA9E0049430B /* Debug */,
+				AE91031A2C3CBA9E0049430B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

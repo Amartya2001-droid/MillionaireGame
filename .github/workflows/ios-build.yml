@@ -1,5 +1,8 @@
 name: iOS Build
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches:
@@ -30,3 +33,13 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 16' \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+      - name: Run unit tests
+        run: |
+          xcodebuild \
+            -project MillionaireGame.xcodeproj \
+            -scheme MillionaireGame \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGNING_ALLOWED=NO \
+            test

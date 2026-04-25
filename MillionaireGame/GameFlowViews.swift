@@ -88,14 +88,15 @@ struct RegistrationView: View {
     }
 
     private var formIsValid: Bool {
-        !playerProfile.firstName.isEmpty &&
-        !playerProfile.lastName.isEmpty &&
-        playerProfile.email.contains("@") &&
-        playerProfile.email.contains(".")
+        GameRules.isValidRegistration(
+            firstName: playerProfile.firstName,
+            lastName: playerProfile.lastName,
+            email: playerProfile.email
+        )
     }
 
     private var validationMessage: String {
-        formIsValid ? "You can update these details any time before starting a run." : "Enter your full name and a valid email address to continue."
+        GameRules.validationMessage(isValid: formIsValid)
     }
 
     private func inputField(
@@ -191,7 +192,7 @@ struct GameView: View {
         let selectedQuestions = Array(QuestionBank.questions(for: genre).shuffled().prefix(15))
         _questions = State(initialValue: selectedQuestions)
         _visibleOptions = State(initialValue: selectedQuestions.first?.options.shuffled() ?? [])
-        _timeRemaining = State(initialValue: GameView.timeLimit(for: 0))
+        _timeRemaining = State(initialValue: GameRules.timeLimit(for: 0))
     }
 
     var body: some View {
@@ -350,7 +351,7 @@ struct GameView: View {
                 finishGame(with: .completed)
             } else {
                 currentQuestionIndex += 1
-                timeRemaining = Self.timeLimit(for: currentQuestionIndex)
+                timeRemaining = GameRules.timeLimit(for: currentQuestionIndex)
                 visibleOptions = questions[currentQuestionIndex].options.shuffled()
             }
         } else {
@@ -362,9 +363,10 @@ struct GameView: View {
         guard hintsRemaining > 0 else { return }
         guard visibleOptions.count > 2 else { return }
 
-        let incorrectOptions = visibleOptions.filter { $0 != currentQuestion.correctAnswer }.shuffled()
-        let optionsToRemove = Set(incorrectOptions.prefix(2))
-        visibleOptions.removeAll { optionsToRemove.contains($0) }
+        visibleOptions = GameRules.reducedOptions(
+            from: visibleOptions.shuffled(),
+            keeping: currentQuestion.correctAnswer
+        )
         hintsRemaining -= 1
     }
 
@@ -381,20 +383,9 @@ struct GameView: View {
         currentQuestionIndex = 0
         visibleOptions = refreshedQuestions.first?.options.shuffled() ?? []
         hintsRemaining = 3
-        timeRemaining = Self.timeLimit(for: 0)
+        timeRemaining = GameRules.timeLimit(for: 0)
         winnings = 0
         outcome = nil
-    }
-
-    private static func timeLimit(for index: Int) -> Int {
-        switch index {
-        case 0..<5:
-            return 120
-        case 5..<10:
-            return 60
-        default:
-            return 30
-        }
     }
 }
 

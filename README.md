@@ -1,57 +1,77 @@
 # MillionaireGame
 
-MillionaireGame is a SwiftUI iOS quiz app inspired by the tension and pacing of "Who Wants to Be a Millionaire?". The project focuses on clean game flow, polished presentation, timed question rounds, and a simple architecture that is easy to extend.
+[![iOS Build](https://github.com/Amartya2001-droid/MillionaireGame/actions/workflows/ios-build.yml/badge.svg)](https://github.com/Amartya2001-droid/MillionaireGame/actions/workflows/ios-build.yml)
 
-## Why This Project Stands Out
+MillionaireGame is a SwiftUI iOS quiz app inspired by the pacing of "Who Wants to Be a Millionaire?". It combines a polished game flow with clean architecture, CI-backed verification, and small testable logic components that make the project feel production-minded rather than thrown together.
 
-- Built with SwiftUI and structured into focused source files instead of one large view dump
-- Uses a clean navigation flow from landing screen to registration, category selection, gameplay, and results
-- Includes time-based rounds, a prize ladder, persistent best-score tracking, and 50:50 hints
-- Keeps quiz data separate from view code so categories and questions are easy to expand
-- Designed to read well on GitHub as a real project, not just a classroom submission
+## Highlights
+
+- Built with SwiftUI for iOS
+- Clean navigation from landing page to registration, genre selection, gameplay, and results
+- Time-based progression with a 15-question prize ladder
+- 50:50 hint mechanic and local best-score persistence
+- Extracted game rules for testable business logic
+- GitHub Actions workflow that builds and tests the app on macOS
 
 ## Tech Stack
 
 - Swift
 - SwiftUI
-- Xcode project setup for iOS
-- Local app state with `@State` and `@AppStorage`
+- XCTest
+- Xcode
+- GitHub Actions
 
-## App Flow
+## Architecture
 
-1. Open the app from the landing screen.
-2. Enter player information.
-3. Pick one of five quiz genres.
-4. Answer 15 questions against the clock.
-5. Use up to three 50:50 hints during the run.
-6. Finish the ladder and aim for the top prize.
+```mermaid
+flowchart TD
+    A["ContentView"] --> B["RegistrationView"]
+    B --> C["GenreSelectionView"]
+    C --> D["GameView"]
+    D --> E["ResultsView"]
+
+    D --> F["GameRules"]
+    D --> G["QuestionBank"]
+    B --> F
+
+    F --> H["Unit Tests"]
+    G --> H
+```
 
 ## Project Structure
 
 - `MillionaireGame/ContentView.swift`
-  The landing screen and top-level navigation entry point.
+  Entry point for the landing screen and app navigation.
 - `MillionaireGame/GameFlowViews.swift`
-  Registration, genre selection, gameplay, results, and instructions screens.
+  Registration, genre selection, gameplay, results, and instructions.
+- `MillionaireGame/GameRules.swift`
+  Pure game-logic helpers for validation, timing, and hint reduction.
 - `MillionaireGame/Models.swift`
-  Core domain models such as player and question types.
+  Core domain models such as `PlayerProfile`, `GameQuestion`, and `GameOutcome`.
 - `MillionaireGame/QuestionBank.swift`
-  Prize ladder data and the quiz question dataset.
+  Quiz data and prize ladder configuration.
 - `MillionaireGame/DesignSystem.swift`
-  Shared styling, button styles, background visuals, and helper extensions.
-- `MillionaireGame.xcodeproj`
-  Xcode project configuration.
+  Shared visual styling, button styles, and UI helpers.
+- `MillionaireGameTests/MillionaireGameTests.swift`
+  Unit tests for core game logic.
+- `.github/workflows/ios-build.yml`
+  GitHub Actions workflow for simulator builds and tests.
 
-## Features
+## Gameplay
 
-- Home screen with a clear call to action
-- Registration flow before gameplay
-- Genre-based quiz rounds
-- 15-question progression system
-- Dynamic countdown timing by round
-- 50:50 hint mechanic
-- Prize ladder progression
-- Results screen with replay flow
-- Best-score persistence on device
+1. Start from the home screen.
+2. Enter player details.
+3. Choose a quiz genre.
+4. Answer 15 questions against the clock.
+5. Use up to three 50:50 hints strategically.
+6. Finish the ladder and aim for the top prize.
+
+## What I Focused On
+
+- Breaking a prototype-style codebase into focused files
+- Keeping UI code readable while moving rules into testable logic
+- Making the repository presentable and verifiable on GitHub
+- Using CI so the project shows build discipline even without local Xcode installed
 
 ## Running Locally
 
@@ -59,7 +79,7 @@ MillionaireGame is a SwiftUI iOS quiz app inspired by the tension and pacing of 
 
 - macOS
 - Full Xcode installation
-- iOS Simulator or Apple device for runtime testing
+- iOS Simulator or physical Apple device
 
 ### Setup
 
@@ -69,19 +89,24 @@ cd MillionaireGame
 open MillionaireGame.xcodeproj
 ```
 
-Then choose a simulator in Xcode and run with `Cmd + R`.
+Choose a simulator in Xcode and run with `Cmd + R`.
 
-## Notes
+## Automated Verification
 
-- The active app target lives entirely inside the `MillionaireGame/` folder.
-- Full simulator verification requires Xcode. Command Line Tools alone are not enough to run `xcodebuild` for this app target.
+The repository includes a GitHub Actions workflow that:
+
+- Selects Xcode on a macOS runner
+- Builds the app for iOS Simulator
+- Runs the unit test suite
+
+That means visitors can immediately see whether the current `main` branch is healthy.
 
 ## Future Improvements
 
-- Add dedicated unit tests for question and timer logic
-- Add sound effects and animations for correct and incorrect answers
-- Add a richer settings screen
-- Introduce accessibility improvements and voice support
+- Add richer game audio and motion feedback
+- Expand the question bank and difficulty scaling
+- Add accessibility improvements and voice guidance
+- Add screenshot assets or a demo video for the README
 
 ## License
 

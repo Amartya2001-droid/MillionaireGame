@@ -7,10 +7,21 @@ import Foundation
 
 enum GameRules {
     static func isValidRegistration(firstName: String, lastName: String, email: String) -> Bool {
-        !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        email.contains("@") &&
-        email.contains(".")
+        guard !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+
+        let address = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard address.rangeOfCharacter(from: .whitespacesAndNewlines) == nil else { return false }
+        let parts = address.split(separator: "@", omittingEmptySubsequences: false)
+        guard parts.count == 2, !parts[0].isEmpty,
+              !parts[0].hasPrefix("."), !parts[0].hasSuffix("."),
+              !parts[0].contains("..") else { return false }
+
+        let labels = parts[1].split(separator: ".", omittingEmptySubsequences: false)
+        return labels.count >= 2 && labels.allSatisfy { label in
+            !label.isEmpty && !label.hasPrefix("-") && !label.hasSuffix("-") &&
+            label.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }
+        }
     }
 
     static func validationMessage(isValid: Bool) -> String {
@@ -31,12 +42,10 @@ enum GameRules {
     }
 
     static func reducedOptions(from options: [String], keeping correctAnswer: String) -> [String] {
-        guard options.count > 2 else { return options }
+        guard options.count > 2, options.contains(correctAnswer),
+              let incorrectAnswer = options.first(where: { $0 != correctAnswer }) else { return options }
 
-        let incorrectOptions = options.filter { $0 != correctAnswer }
-        let removableOptions = incorrectOptions.prefix(2)
-        let removalSet = Set(removableOptions)
-
-        return options.filter { !removalSet.contains($0) }
+        // Preserve display order while retaining one correct and one wrong choice.
+        return options.filter { $0 == correctAnswer || $0 == incorrectAnswer }
     }
 }

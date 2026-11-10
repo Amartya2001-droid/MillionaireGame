@@ -2,7 +2,15 @@
 
 [![iOS Build](https://github.com/Amartya2001-droid/MillionaireGame/actions/workflows/ios-build.yml/badge.svg)](https://github.com/Amartya2001-droid/MillionaireGame/actions/workflows/ios-build.yml)
 
-MillionaireGame is a SwiftUI iOS quiz app inspired by the pacing of "Who Wants to Be a Millionaire?". It combines a polished game flow with clean architecture, CI-backed verification, and small testable logic components that make the project feel production-minded rather than thrown together.
+MillionaireGame is a SwiftUI iOS quiz app inspired by "Who Wants to Be a Millionaire?".
+
+## Current status
+
+- Implemented: five genres with 15 questions each, a 15-step prize ladder, three 50:50 hints per run, timed questions, and local best-winnings storage.
+- Registration details stay in memory; there is no account service or server leaderboard. Prizes are game scores, not real-money payouts.
+- Live URL: **not live yet — blocked by an iOS distribution/release setup**. No App Store or TestFlight URL is recorded in this repository.
+- Latest main (`4a11c3b`) has a [successful iOS Build run](https://github.com/Amartya2001-droid/MillionaireGame/actions/runs/24931406309), completed April 25, 2026. This is an existing run, not a fresh Day 1 build.
+- Linux can run the Foundation logic tests below. It cannot build SwiftUI iOS code or verify simulator UI, device behavior, signing, or distribution; those require macOS/Xcode.
 
 ## Highlights
 
@@ -99,7 +107,14 @@ The repository includes a GitHub Actions workflow that:
 - Builds the app for iOS Simulator
 - Runs the unit test suite
 
-That means visitors can immediately see whether the current `main` branch is healthy.
+For portable logic verification with Swift 5.9 or later:
+
+```bash
+swift test
+```
+
+This runs the same XCTest source against `GameRules`, `Models`, and `QuestionBank`.
+It does not build or exercise the SwiftUI screens. Use the macOS workflow for the full app build and hosted iOS tests.
 
 ## Future Improvements
 

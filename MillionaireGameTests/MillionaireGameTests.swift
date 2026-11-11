@@ -29,6 +29,16 @@ final class MillionaireGameTests: XCTestCase {
         )
     }
 
+    func testQueuedAnswerCannotApplyToTheNextQuestion() {
+        let first = GameQuestion(text: "First", options: ["A", "B"], correctAnswer: "A", genre: "Test")
+        let next = GameQuestion(text: "Next", options: ["A", "B"], correctAnswer: "B", genre: "Test")
+        XCTAssertTrue(GameRules.canAcceptAnswer("A", for: first.id, currentQuestion: first, visibleOptions: first.options))
+        // Even shared answer text must not let a queued tap from the first question end the next one.
+        XCTAssertFalse(GameRules.canAcceptAnswer("A", for: first.id, currentQuestion: next, visibleOptions: next.options))
+        XCTAssertTrue(GameRules.canAcceptAnswer("B", for: next.id, currentQuestion: next, visibleOptions: next.options))
+        XCTAssertFalse(GameRules.canAcceptAnswer("A", for: next.id, currentQuestion: next, visibleOptions: ["B"]))
+    }
+
     func testTimeLimitTransitionsAcrossRounds() {
         XCTAssertEqual(GameRules.timeLimit(for: 0), 120)
         XCTAssertEqual(GameRules.timeLimit(for: 4), 120)

@@ -41,6 +41,11 @@ enum GameRules {
         }
     }
 
+    static func canAcceptAnswer(_ option: String, for questionID: UUID,
+                                currentQuestion: GameQuestion, visibleOptions: [String]) -> Bool {
+        questionID == currentQuestion.id && visibleOptions.contains(option)
+    }
+
     static func reducedOptions(from options: [String], keeping correctAnswer: String) -> [String] {
         guard options.count > 2, options.contains(correctAnswer),
               let incorrectAnswer = options.first(where: { $0 != correctAnswer }) else { return options }

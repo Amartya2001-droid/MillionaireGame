@@ -55,12 +55,6 @@ struct RegistrationView: View {
                         .environment(\.colorScheme, .dark)
                     }
 
-                    NavigationLink(isActive: $shouldShowGenres) {
-                        GenreSelectionView(player: playerProfile)
-                    } label: {
-                        EmptyView()
-                    }
-
                     Button("Continue") {
                         shouldShowGenres = true
                     }
@@ -73,6 +67,9 @@ struct RegistrationView: View {
                 }
                 .padding(24)
             }
+        }
+        .navigationDestination(isPresented: $shouldShowGenres) {
+            GenreSelectionView(player: playerProfile)
         }
         .navigationTitle("Registration")
         .navigationBarTitleDisplayMode(.inline)

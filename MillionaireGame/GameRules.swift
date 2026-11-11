@@ -49,3 +49,16 @@ enum GameRules {
         return options.filter { $0 == correctAnswer || $0 == incorrectAnswer }
     }
 }
+
+/// A deadline keeps delayed publisher events from extending a question's time limit.
+struct QuestionTimer {
+    let deadline: Date
+
+    init(questionIndex: Int, now: Date) {
+        deadline = now.addingTimeInterval(TimeInterval(GameRules.timeLimit(for: questionIndex)))
+    }
+
+    func remaining(at now: Date) -> Int {
+        max(0, Int(ceil(deadline.timeIntervalSince(now))))
+    }
+}

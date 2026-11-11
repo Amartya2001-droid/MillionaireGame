@@ -214,6 +214,7 @@ struct GameView: View {
                 ContentUnavailableView("No Questions Available", systemImage: "exclamationmark.triangle", description: Text("This genre does not have enough questions yet."))
                     .foregroundStyle(.white)
             } else {
+                let displayedQuestionID = currentQuestion.id
                 VStack(alignment: .leading, spacing: 20) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 6) {
@@ -261,7 +262,7 @@ struct GameView: View {
                     VStack(spacing: 12) {
                         ForEach(visibleOptions, id: \.self) { option in
                             Button {
-                                handleAnswer(option)
+                                handleAnswer(option, for: displayedQuestionID)
                             } label: {
                                 HStack {
                                     Text(option)
@@ -341,8 +342,11 @@ struct GameView: View {
         }
     }
 
-    private func handleAnswer(_ option: String) {
-        guard outcome == nil else { return }
+    private func handleAnswer(_ option: String, for questionID: UUID) {
+        guard outcome == nil,
+              GameRules.canAcceptAnswer(option, for: questionID,
+                                        currentQuestion: currentQuestion,
+                                        visibleOptions: visibleOptions) else { return }
 
         if option == currentQuestion.correctAnswer {
             winnings = QuestionBank.prizeLadder[currentQuestionIndex]

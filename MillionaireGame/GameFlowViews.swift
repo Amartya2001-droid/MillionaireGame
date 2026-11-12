@@ -171,12 +171,14 @@ struct GameView: View {
 
     @AppStorage("bestWinnings") private var bestWinnings = 0
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var questions: [GameQuestion]
     @State private var currentQuestionIndex = 0
     @State private var visibleOptions: [String]
     @State private var hintsRemaining = 3
     @State private var timeRemaining: Int
+    @State private var questionTimer: QuestionTimer?
     @State private var winnings = 0
     @State private var outcome: GameOutcome?
 
@@ -290,6 +292,15 @@ struct GameView: View {
                 }
             }
         }
+        .onAppear {
+            if questionTimer == nil {
+                startQuestionTimer()
+            }
+            tick()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { tick() }
+        }
         .navigationBarBackButtonHidden(outcome != nil)
         .navigationTitle("Game")
         .navigationBarTitleDisplayMode(.inline)
@@ -325,21 +336,21 @@ struct GameView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
+    private func startQuestionTimer() {
+        questionTimer = QuestionTimer(questionIndex: currentQuestionIndex, now: Date())
+        timeRemaining = GameRules.timeLimit(for: currentQuestionIndex)
+    }
+
     private func tick() {
-        guard outcome == nil else { return }
-        guard timeRemaining > 0 else {
-            finishGame(with: .timedOut(correct: currentQuestion.correctAnswer))
-            return
-        }
-
-        timeRemaining -= 1
-
+        guard outcome == nil, !questions.isEmpty, let questionTimer else { return }
+        timeRemaining = questionTimer.remaining(at: Date())
         if timeRemaining == 0 {
             finishGame(with: .timedOut(correct: currentQuestion.correctAnswer))
         }
     }
 
     private func handleAnswer(_ option: String, for questionID: UUID) {
+        tick()
         guard outcome == nil,
               GameRules.canAcceptAnswer(option, for: questionID,
                                         currentQuestion: currentQuestion,
@@ -352,7 +363,7 @@ struct GameView: View {
                 finishGame(with: .completed)
             } else {
                 currentQuestionIndex += 1
-                timeRemaining = GameRules.timeLimit(for: currentQuestionIndex)
+                startQuestionTimer()
                 visibleOptions = questions[currentQuestionIndex].options.shuffled()
             }
         } else {
@@ -361,6 +372,8 @@ struct GameView: View {
     }
 
     private func useHint() {
+        tick()
+        guard outcome == nil else { return }
         guard hintsRemaining > 0 else { return }
         guard visibleOptions.count > 2 else { return }
 
@@ -384,7 +397,7 @@ struct GameView: View {
         currentQuestionIndex = 0
         visibleOptions = refreshedQuestions.first?.options.shuffled() ?? []
         hintsRemaining = 3
-        timeRemaining = GameRules.timeLimit(for: 0)
+        startQuestionTimer()
         winnings = 0
         outcome = nil
     }
@@ -458,7 +471,7 @@ struct InstructionsView: View {
                     )
                     instructionCard(
                         title: "Beat the Clock",
-                        body: "Questions 1 to 5 give you 2 minutes, 6 to 10 give you 1 minute, and the last 5 give you 30 seconds."
+                        body: "Questions 1 to 5 give you 2 minutes, 6 to 10 give you 1 minute, and the last 5 give you 30 seconds. The clock keeps running when you leave the app."
                     )
                     instructionCard(
                         title: "Use Hints Wisely",

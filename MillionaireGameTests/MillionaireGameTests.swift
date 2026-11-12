@@ -29,6 +29,30 @@ final class MillionaireGameTests: XCTestCase {
         )
     }
 
+    func testDelayedTimerUpdatesUseElapsedTimeInsteadOfTickCount() {
+        let start = Date(timeIntervalSince1970: 1_000)
+        let timer = QuestionTimer(questionIndex: 0, now: start)
+        XCTAssertEqual(timer.remaining(at: start), 120)
+        XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(12)), 108)
+        // Repeated callbacks at the same instant must not consume extra seconds.
+        XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(12)), 108)
+        XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(119.5)), 1)
+        XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(120)), 0)
+        XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(600)), 0)
+    }
+
+    func testEachQuestionGetsItsOwnDeadlineAtEveryTimerTier() {
+        let start = Date(timeIntervalSince1970: 1_000)
+        for (index, duration) in [(0, 120), (5, 60), (10, 30)] {
+            let timer = QuestionTimer(questionIndex: index, now: start)
+            XCTAssertEqual(timer.remaining(at: start), duration)
+            XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(Double(duration))), 0)
+            let nextStart = start.addingTimeInterval(600)
+            let restarted = QuestionTimer(questionIndex: index, now: nextStart)
+            XCTAssertEqual(restarted.remaining(at: nextStart), duration)
+        }
+    }
+
     func testQueuedAnswerCannotApplyToTheNextQuestion() {
         let first = GameQuestion(text: "First", options: ["A", "B"], correctAnswer: "A", genre: "Test")
         let next = GameQuestion(text: "Next", options: ["A", "B"], correctAnswer: "B", genre: "Test")

@@ -10,6 +10,7 @@ MillionaireGame is a SwiftUI iOS quiz app inspired by "Who Wants to Be a Million
 - Registration details stay in memory; there is no account service or server leaderboard. Prizes are game scores, not real-money payouts.
 - Live URL: **not live yet — blocked by an iOS distribution/release setup**. No App Store or TestFlight URL is recorded in this repository.
 - Day 2 baseline: merged main (`9fd9557`) passed the simulator build and iOS unit tests in [iOS Build](https://github.com/Amartya2001-droid/MillionaireGame/actions/runs/42916062697), completed November 10, 2026. This was verified from CI, not built locally on Linux.
+- Question timers use wall-clock deadlines: elapsed time continues while the app is backgrounded, and expiry is checked before answers or hints. System clock changes affect these deadlines.
 - Linux can run the Foundation logic tests below. It cannot build SwiftUI iOS code or verify simulator UI, device behavior, signing, or distribution; those require macOS/Xcode.
 
 ## Highlights

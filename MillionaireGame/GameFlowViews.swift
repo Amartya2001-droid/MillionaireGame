@@ -270,7 +270,7 @@ struct GameView: View {
                     }
 
                     Button("Use 50:50 Hint") {
-                        useHint()
+                        useHint(for: displayedQuestionID)
                     }
                     .buttonStyle(PrimaryActionButtonStyle())
                     .disabled(session.hintsRemaining == 0 || session.visibleOptions.count <= 2)
@@ -327,8 +327,8 @@ struct GameView: View {
         saveBestWinnings()
     }
 
-    private func useHint() {
-        session.useHint(at: Date())
+    private func useHint(for questionID: UUID) {
+        session.useHint(for: questionID, at: Date())
         saveBestWinnings()
     }
 

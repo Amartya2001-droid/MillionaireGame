@@ -153,7 +153,7 @@ final class GameSessionTests: XCTestCase {
             XCTAssertEqual(game.questionsAnswered, 15)
             XCTAssertEqual(game.winnings, 1_000_000)
             game.refresh(at: start.addingTimeInterval(10_000))
-            game.useHint(at: start)
+            game.useHint(for: game.currentQuestion!.id, at: start)
             XCTAssertEqual(game.outcome, .completed)
             XCTAssertEqual(game.hintsRemaining, 3)
         }
@@ -172,7 +172,7 @@ final class GameSessionTests: XCTestCase {
             XCTAssertEqual(game.questionsAnswered, index)
             XCTAssertEqual(game.winnings, index == 0 ? 0 : QuestionBank.prizeLadder[index - 1])
             game.answer(question.correctAnswer, for: question.id, at: start)
-            game.useHint(at: start)
+            game.useHint(for: game.currentQuestion!.id, at: start)
             game.appear(at: start.addingTimeInterval(1_000))
             XCTAssertEqual(game.outcome, outcome)
             XCTAssertEqual(game.currentQuestionIndex, index)
@@ -223,7 +223,7 @@ final class GameSessionTests: XCTestCase {
         var game = newRun()
         game.appear(at: start)
         let options = game.visibleOptions
-        game.useHint(at: start.addingTimeInterval(120))
+        game.useHint(for: game.currentQuestion!.id, at: start.addingTimeInterval(120))
         XCTAssertEqual(game.outcome, .timedOut(correct: game.currentQuestion!.correctAnswer))
         XCTAssertEqual(game.hintsRemaining, 3)
         XCTAssertEqual(game.visibleOptions, options)
@@ -234,16 +234,16 @@ final class GameSessionTests: XCTestCase {
         game.appear(at: start)
         for remaining in [2, 1, 0] {
             let question = game.currentQuestion!
-            game.useHint(at: start)
+            game.useHint(for: game.currentQuestion!.id, at: start)
             XCTAssertEqual(game.visibleOptions.count, 2)
             XCTAssertTrue(game.visibleOptions.contains(question.correctAnswer))
             XCTAssertEqual(game.hintsRemaining, remaining)
-            game.useHint(at: start)
+            game.useHint(for: game.currentQuestion!.id, at: start)
             XCTAssertEqual(game.hintsRemaining, remaining)
             game.answer(question.correctAnswer, for: question.id, at: start)
             XCTAssertEqual(game.visibleOptions.count, 4)
         }
-        game.useHint(at: start)
+        game.useHint(for: game.currentQuestion!.id, at: start)
         XCTAssertEqual(game.visibleOptions.count, 4)
         XCTAssertEqual(game.hintsRemaining, 0)
     }
@@ -252,7 +252,7 @@ final class GameSessionTests: XCTestCase {
         var game = newRun()
         game.appear(at: start)
         let first = game.currentQuestion!
-        game.useHint(at: start)
+        game.useHint(for: game.currentQuestion!.id, at: start)
         let removed = first.options.first { !game.visibleOptions.contains($0) }!
         game.answer(removed, for: first.id, at: start)
         XCTAssertEqual(game.winnings, 0)
@@ -264,10 +264,26 @@ final class GameSessionTests: XCTestCase {
         XCTAssertNil(game.outcome)
     }
 
+    func testQueuedHintCannotSpendBudgetOnNextQuestion() {
+        var game = newRun()
+        game.appear(at: start)
+        let first = game.currentQuestion!
+        game.answer(first.correctAnswer, for: first.id, at: start)
+        let options = game.visibleOptions
+        game.useHint(for: first.id, at: start)
+        XCTAssertEqual(game.hintsRemaining, 3)
+        XCTAssertEqual(game.visibleOptions, options)
+        let current = game.currentQuestion!
+        game.useHint(for: current.id, at: start)
+        XCTAssertEqual(game.hintsRemaining, 2)
+        XCTAssertEqual(game.visibleOptions.count, 2)
+        XCTAssertTrue(game.visibleOptions.contains(current.correctAnswer))
+    }
+
     func testReplayStartsFreshWithNewDeadlineAndHintBudget() {
         var game = newRun()
         game.appear(at: start)
-        game.useHint(at: start)
+        game.useHint(for: game.currentQuestion!.id, at: start)
         advance(&game, count: 4, at: start)
         game.refresh(at: start.addingTimeInterval(600))
         game = newRun() // Same reset operation used by GameView.
@@ -287,13 +303,13 @@ final class GameSessionTests: XCTestCase {
         var empty = GameSession(questions: [])
         empty.appear(at: start)
         empty.refresh(at: start)
-        empty.useHint(at: start)
+        empty.useHint(for: UUID(), at: start)
         XCTAssertNil(empty.currentQuestion)
         XCTAssertNil(empty.outcome)
         var game = newRun()
         let question = game.currentQuestion!
         game.answer(question.correctAnswer, for: question.id, at: start)
-        game.useHint(at: start)
+        game.useHint(for: game.currentQuestion!.id, at: start)
         XCTAssertEqual(game.winnings, 0)
         XCTAssertEqual(game.hintsRemaining, 3)
     }

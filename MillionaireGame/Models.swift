@@ -97,9 +97,10 @@ struct GameSession {
         }
     }
 
-    mutating func useHint(at now: Date) {
+    mutating func useHint(for questionID: UUID, at now: Date) {
         refresh(at: now)
         guard outcome == nil, questionTimer != nil, let question = currentQuestion,
+              questionID == question.id,
               hintsRemaining > 0, visibleOptions.count > 2 else { return }
         visibleOptions = GameRules.reducedOptions(from: visibleOptions.shuffled(), keeping: question.correctAnswer)
         hintsRemaining -= 1

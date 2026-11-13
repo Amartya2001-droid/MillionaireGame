@@ -53,7 +53,11 @@ struct GameSession {
     private var questionTimer: QuestionTimer?
 
     init(questions: [GameQuestion]) {
-        self.questions = Array(questions.prefix(QuestionBank.prizeLadder.count))
+        // Bank values are shared across replays; event identities must belong to this run.
+        self.questions = questions.prefix(QuestionBank.prizeLadder.count).map { question in
+            GameQuestion(text: question.text, options: question.options,
+                         correctAnswer: question.correctAnswer, genre: question.genre)
+        }
         visibleOptions = self.questions.first?.options.shuffled() ?? []
     }
 

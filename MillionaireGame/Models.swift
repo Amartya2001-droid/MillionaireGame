@@ -40,3 +40,73 @@ enum GameOutcome: Equatable {
         }
     }
 }
+
+/// Game transitions are shared by SwiftUI and deterministic lifecycle/gameplay tests.
+struct GameSession {
+    let questions: [GameQuestion]
+    private(set) var currentQuestionIndex = 0
+    private(set) var visibleOptions: [String]
+    private(set) var hintsRemaining = 3
+    private(set) var timeRemaining = GameRules.timeLimit(for: 0)
+    private(set) var winnings = 0
+    private(set) var outcome: GameOutcome?
+    private var questionTimer: QuestionTimer?
+
+    init(questions: [GameQuestion]) {
+        self.questions = Array(questions.prefix(QuestionBank.prizeLadder.count))
+        visibleOptions = self.questions.first?.options.shuffled() ?? []
+    }
+
+    var currentQuestion: GameQuestion? {
+        questions.indices.contains(currentQuestionIndex) ? questions[currentQuestionIndex] : nil
+    }
+
+    var questionsAnswered: Int {
+        outcome == .completed ? questions.count : currentQuestionIndex
+    }
+
+    // Reappearing/foregrounding never restarts an existing deadline.
+    mutating func appear(at now: Date) {
+        guard currentQuestion != nil, outcome == nil else { return }
+        if questionTimer == nil { startQuestion(at: now) }
+        refresh(at: now)
+    }
+
+    mutating func refresh(at now: Date) {
+        guard outcome == nil, let question = currentQuestion, let questionTimer else { return }
+        timeRemaining = questionTimer.remaining(at: now)
+        if timeRemaining == 0 { outcome = .timedOut(correct: question.correctAnswer) }
+    }
+
+    mutating func answer(_ option: String, for questionID: UUID, at now: Date) {
+        refresh(at: now)
+        guard outcome == nil, questionTimer != nil, let question = currentQuestion,
+              GameRules.canAcceptAnswer(option, for: questionID,
+                                        currentQuestion: question, visibleOptions: visibleOptions) else { return }
+        guard option == question.correctAnswer else {
+            outcome = .incorrectAnswer(selected: option, correct: question.correctAnswer)
+            return
+        }
+        winnings = QuestionBank.prizeLadder[currentQuestionIndex]
+        if currentQuestionIndex == questions.count - 1 {
+            outcome = .completed
+        } else {
+            currentQuestionIndex += 1
+            startQuestion(at: now)
+            visibleOptions = currentQuestion?.options.shuffled() ?? []
+        }
+    }
+
+    mutating func useHint(at now: Date) {
+        refresh(at: now)
+        guard outcome == nil, questionTimer != nil, let question = currentQuestion,
+              hintsRemaining > 0, visibleOptions.count > 2 else { return }
+        visibleOptions = GameRules.reducedOptions(from: visibleOptions.shuffled(), keeping: question.correctAnswer)
+        hintsRemaining -= 1
+    }
+
+    private mutating func startQuestion(at now: Date) {
+        questionTimer = QuestionTimer(questionIndex: currentQuestionIndex, now: now)
+        timeRemaining = GameRules.timeLimit(for: currentQuestionIndex)
+    }
+}

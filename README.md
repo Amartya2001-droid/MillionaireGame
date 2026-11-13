@@ -117,6 +117,7 @@ swift test
 ```
 
 This runs the same XCTest source against `GameRules`, `Models`, and `QuestionBank`.
+`GameView` delegates gameplay to the Foundation `GameSession` model. Automated code-based play-tests cover full million-score runs in all five genres, incorrect answers and background expiry at every ladder step, short background returns, exact-deadline answers/hints, lifeline limits, stale answers, and replay. These are injected-time model tests; actual background/foreground UI behavior and best-score storage still require simulator/device checks.
 It does not build or exercise the SwiftUI screens. Use the macOS workflow for the full app build and hosted iOS tests.
 
 ## Future Improvements

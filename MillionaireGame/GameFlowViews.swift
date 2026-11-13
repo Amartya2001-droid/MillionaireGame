@@ -173,14 +173,7 @@ struct GameView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
 
-    @State private var questions: [GameQuestion]
-    @State private var currentQuestionIndex = 0
-    @State private var visibleOptions: [String]
-    @State private var hintsRemaining = 3
-    @State private var timeRemaining: Int
-    @State private var questionTimer: QuestionTimer?
-    @State private var winnings = 0
-    @State private var outcome: GameOutcome?
+    @State private var session: GameSession
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -189,31 +182,29 @@ struct GameView: View {
         self.genre = genre
 
         let selectedQuestions = Array(QuestionBank.questions(for: genre).shuffled().prefix(15))
-        _questions = State(initialValue: selectedQuestions)
-        _visibleOptions = State(initialValue: selectedQuestions.first?.options.shuffled() ?? [])
-        _timeRemaining = State(initialValue: GameRules.timeLimit(for: 0))
+        _session = State(initialValue: GameSession(questions: selectedQuestions))
     }
 
     var body: some View {
         ZStack {
             MillionaireBackground()
 
-            if let outcome {
+            if let outcome = session.outcome {
                 ResultsView(
                     playerName: player.firstName,
                     genre: genre,
-                    winnings: winnings,
-                    questionsAnswered: questionsAnswered,
+                    winnings: session.winnings,
+                    questionsAnswered: session.questionsAnswered,
                     didWinMillion: outcome == .completed,
                     message: outcome.message,
                     onPlayAgain: resetGame,
                     onChooseGenre: { dismiss() }
                 )
-            } else if questions.isEmpty {
+            } else if session.questions.isEmpty {
                 ContentUnavailableView("No Questions Available", systemImage: "exclamationmark.triangle", description: Text("This genre does not have enough questions yet."))
                     .foregroundStyle(.white)
-            } else {
-                let displayedQuestionID = currentQuestion.id
+            } else if let question = session.currentQuestion {
+                let displayedQuestionID = question.id
                 VStack(alignment: .leading, spacing: 20) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 6) {
@@ -221,7 +212,7 @@ struct GameView: View {
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(Color.white.opacity(0.7))
 
-                            Text("Question \(currentQuestionIndex + 1) of \(questions.count)")
+                            Text("Question \(session.currentQuestionIndex + 1) of \(session.questions.count)")
                                 .font(.title3.bold())
                                 .foregroundStyle(.white)
                         }
@@ -233,7 +224,7 @@ struct GameView: View {
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(Color.white.opacity(0.7))
 
-                            Text(winnings.currencyString)
+                            Text(session.winnings.currencyString)
                                 .font(.title3.bold())
                                 .foregroundStyle(Color.gold)
                         }
@@ -242,15 +233,15 @@ struct GameView: View {
                     HStack(spacing: 12) {
                         infoCapsule(title: "Player", value: player.firstName)
                         infoCapsule(title: "Time", value: timeString)
-                        infoCapsule(title: "Hints", value: "\(hintsRemaining)")
+                        infoCapsule(title: "Hints", value: "\(session.hintsRemaining)")
                     }
 
                     VStack(alignment: .leading, spacing: 14) {
-                        Text(currentQuestion.text)
+                        Text(question.text)
                             .font(.title2.weight(.semibold))
                             .foregroundStyle(.white)
 
-                        Text("Next correct answer: \(QuestionBank.prizeLadder[currentQuestionIndex].currencyString)")
+                        Text("Next correct answer: \(QuestionBank.prizeLadder[session.currentQuestionIndex].currencyString)")
                             .foregroundStyle(Color.white.opacity(0.82))
                     }
                     .padding(22)
@@ -259,7 +250,7 @@ struct GameView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
                     VStack(spacing: 12) {
-                        ForEach(visibleOptions, id: \.self) { option in
+                        ForEach(session.visibleOptions, id: \.self) { option in
                             Button {
                                 handleAnswer(option, for: displayedQuestionID)
                             } label: {
@@ -282,7 +273,7 @@ struct GameView: View {
                         useHint()
                     }
                     .buttonStyle(PrimaryActionButtonStyle())
-                    .disabled(hintsRemaining == 0 || visibleOptions.count <= 2)
+                    .disabled(session.hintsRemaining == 0 || session.visibleOptions.count <= 2)
 
                     Spacer(minLength: 0)
                 }
@@ -293,30 +284,20 @@ struct GameView: View {
             }
         }
         .onAppear {
-            if questionTimer == nil {
-                startQuestionTimer()
-            }
-            tick()
+            session.appear(at: Date())
+            saveBestWinnings()
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { tick() }
         }
-        .navigationBarBackButtonHidden(outcome != nil)
+        .navigationBarBackButtonHidden(session.outcome != nil)
         .navigationTitle("Game")
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    private var currentQuestion: GameQuestion {
-        questions[currentQuestionIndex]
-    }
-
-    private var questionsAnswered: Int {
-        outcome == .completed ? questions.count : currentQuestionIndex
-    }
-
     private var timeString: String {
-        let minutes = timeRemaining / 60
-        let seconds = timeRemaining % 60
+        let minutes = session.timeRemaining / 60
+        let seconds = session.timeRemaining % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
@@ -336,70 +317,31 @@ struct GameView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
-    private func startQuestionTimer() {
-        questionTimer = QuestionTimer(questionIndex: currentQuestionIndex, now: Date())
-        timeRemaining = GameRules.timeLimit(for: currentQuestionIndex)
-    }
-
     private func tick() {
-        guard outcome == nil, !questions.isEmpty, let questionTimer else { return }
-        timeRemaining = questionTimer.remaining(at: Date())
-        if timeRemaining == 0 {
-            finishGame(with: .timedOut(correct: currentQuestion.correctAnswer))
-        }
+        session.refresh(at: Date())
+        saveBestWinnings()
     }
 
     private func handleAnswer(_ option: String, for questionID: UUID) {
-        tick()
-        guard outcome == nil,
-              GameRules.canAcceptAnswer(option, for: questionID,
-                                        currentQuestion: currentQuestion,
-                                        visibleOptions: visibleOptions) else { return }
-
-        if option == currentQuestion.correctAnswer {
-            winnings = QuestionBank.prizeLadder[currentQuestionIndex]
-
-            if currentQuestionIndex == questions.count - 1 {
-                finishGame(with: .completed)
-            } else {
-                currentQuestionIndex += 1
-                startQuestionTimer()
-                visibleOptions = questions[currentQuestionIndex].options.shuffled()
-            }
-        } else {
-            finishGame(with: .incorrectAnswer(selected: option, correct: currentQuestion.correctAnswer))
-        }
+        session.answer(option, for: questionID, at: Date())
+        saveBestWinnings()
     }
 
     private func useHint() {
-        tick()
-        guard outcome == nil else { return }
-        guard hintsRemaining > 0 else { return }
-        guard visibleOptions.count > 2 else { return }
-
-        visibleOptions = GameRules.reducedOptions(
-            from: visibleOptions.shuffled(),
-            keeping: currentQuestion.correctAnswer
-        )
-        hintsRemaining -= 1
+        session.useHint(at: Date())
+        saveBestWinnings()
     }
 
-    private func finishGame(with newOutcome: GameOutcome) {
-        if winnings > bestWinnings {
-            bestWinnings = winnings
+    private func saveBestWinnings() {
+        if session.outcome != nil, session.winnings > bestWinnings {
+            bestWinnings = session.winnings
         }
-        outcome = newOutcome
     }
 
     private func resetGame() {
         let refreshedQuestions = Array(QuestionBank.questions(for: genre).shuffled().prefix(15))
-        questions = refreshedQuestions
-        currentQuestionIndex = 0
-        visibleOptions = refreshedQuestions.first?.options.shuffled() ?? []
-        hintsRemaining = 3
-        startQuestionTimer()
-        winnings = 0
-        outcome = nil
+        session = GameSession(questions: refreshedQuestions)
+        session.appear(at: Date())
     }
 }
 

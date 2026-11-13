@@ -30,27 +30,37 @@ final class MillionaireGameTests: XCTestCase {
     }
 
     func testDelayedTimerUpdatesUseElapsedTimeInsteadOfTickCount() {
-        let start = Date(timeIntervalSince1970: 1_000)
+        let start = ContinuousClock().now
         let timer = QuestionTimer(questionIndex: 0, now: start)
         XCTAssertEqual(timer.remaining(at: start), 120)
-        XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(12)), 108)
+        XCTAssertEqual(timer.remaining(at: start.advanced(by: .seconds(12))), 108)
         // Repeated callbacks at the same instant must not consume extra seconds.
-        XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(12)), 108)
-        XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(119.5)), 1)
-        XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(120)), 0)
-        XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(600)), 0)
+        XCTAssertEqual(timer.remaining(at: start.advanced(by: .seconds(12))), 108)
+        XCTAssertEqual(timer.remaining(at: start.advanced(by: .seconds(119.5))), 1)
+        XCTAssertEqual(timer.remaining(at: start.advanced(by: .seconds(120))), 0)
+        XCTAssertEqual(timer.remaining(at: start.advanced(by: .seconds(600))), 0)
     }
 
     func testEachQuestionGetsItsOwnDeadlineAtEveryTimerTier() {
-        let start = Date(timeIntervalSince1970: 1_000)
+        let start = ContinuousClock().now
         for (index, duration) in [(0, 120), (5, 60), (10, 30)] {
             let timer = QuestionTimer(questionIndex: index, now: start)
             XCTAssertEqual(timer.remaining(at: start), duration)
-            XCTAssertEqual(timer.remaining(at: start.addingTimeInterval(Double(duration))), 0)
-            let nextStart = start.addingTimeInterval(600)
+            XCTAssertEqual(timer.remaining(at: start.advanced(by: .seconds(Double(duration)))), 0)
+            let nextStart = start.advanced(by: .seconds(600))
             let restarted = QuestionTimer(questionIndex: index, now: nextStart)
             XCTAssertEqual(restarted.remaining(at: nextStart), duration)
         }
+    }
+
+    func testContinuousDeadlineRoundsPositiveFractionsAndExpiresExactly() {
+        let start = ContinuousClock().now
+        let timer = QuestionTimer(questionIndex: 10, now: start)
+        XCTAssertEqual(timer.remaining(at: start.advanced(by: .nanoseconds(1))), 30)
+        XCTAssertEqual(timer.remaining(at: start.advanced(by: .seconds(29))), 1)
+        XCTAssertEqual(timer.remaining(at: timer.deadline.advanced(by: .nanoseconds(-1))), 1)
+        XCTAssertEqual(timer.remaining(at: timer.deadline), 0)
+        XCTAssertEqual(timer.remaining(at: timer.deadline.advanced(by: .nanoseconds(1))), 0)
     }
 
     func testQueuedAnswerCannotApplyToTheNextQuestion() {
@@ -124,13 +134,13 @@ final class MillionaireGameTests: XCTestCase {
 }
 
 final class GameSessionTests: XCTestCase {
-    private let start = Date(timeIntervalSince1970: 1_000)
+    private let start = ContinuousClock().now
 
     private func newRun() -> GameSession {
         GameSession(questions: QuestionBank.questions(for: QuestionBank.genres[0]))
     }
 
-    private func advance(_ game: inout GameSession, count: Int, at now: Date) {
+    private func advance(_ game: inout GameSession, count: Int, at now: ContinuousClock.Instant) {
         for _ in 0..<count {
             guard let question = game.currentQuestion else { return XCTFail("Missing question") }
             game.answer(question.correctAnswer, for: question.id, at: now)
@@ -152,7 +162,7 @@ final class GameSessionTests: XCTestCase {
             XCTAssertEqual(game.outcome, .completed, genre)
             XCTAssertEqual(game.questionsAnswered, 15)
             XCTAssertEqual(game.winnings, 1_000_000)
-            game.refresh(at: start.addingTimeInterval(10_000))
+            game.refresh(at: start.advanced(by: .seconds(10_000)))
             game.useHint(for: game.currentQuestion!.id, at: start)
             XCTAssertEqual(game.outcome, .completed)
             XCTAssertEqual(game.hintsRemaining, 3)
@@ -173,7 +183,7 @@ final class GameSessionTests: XCTestCase {
             XCTAssertEqual(game.winnings, index == 0 ? 0 : QuestionBank.prizeLadder[index - 1])
             game.answer(question.correctAnswer, for: question.id, at: start)
             game.useHint(for: game.currentQuestion!.id, at: start)
-            game.appear(at: start.addingTimeInterval(1_000))
+            game.appear(at: start.advanced(by: .seconds(1_000)))
             XCTAssertEqual(game.outcome, outcome)
             XCTAssertEqual(game.currentQuestionIndex, index)
             XCTAssertEqual(game.hintsRemaining, 3)
@@ -187,7 +197,7 @@ final class GameSessionTests: XCTestCase {
             advance(&game, count: index, at: start)
             let question = game.currentQuestion!
             // No publisher callbacks occur while backgrounded.
-            game.appear(at: start.addingTimeInterval(600))
+            game.appear(at: start.advanced(by: .seconds(600)))
             XCTAssertEqual(game.timeRemaining, 0)
             XCTAssertEqual(game.outcome, .timedOut(correct: question.correctAnswer))
             XCTAssertEqual(game.questionsAnswered, index)
@@ -198,14 +208,14 @@ final class GameSessionTests: XCTestCase {
     func testShortBackgroundAndRepeatedAppearDoNotRestartDeadline() {
         var game = newRun()
         game.appear(at: start)
-        game.appear(at: start.addingTimeInterval(50))
+        game.appear(at: start.advanced(by: .seconds(50)))
         XCTAssertEqual(game.timeRemaining, 70)
-        game.refresh(at: start.addingTimeInterval(50))
+        game.refresh(at: start.advanced(by: .seconds(50)))
         XCTAssertEqual(game.timeRemaining, 70)
-        game.appear(at: start.addingTimeInterval(119.5))
+        game.appear(at: start.advanced(by: .seconds(119.5)))
         XCTAssertEqual(game.timeRemaining, 1)
         XCTAssertNil(game.outcome)
-        game.refresh(at: start.addingTimeInterval(120))
+        game.refresh(at: start.advanced(by: .seconds(120)))
         XCTAssertNotNil(game.outcome)
     }
 
@@ -213,7 +223,7 @@ final class GameSessionTests: XCTestCase {
         var game = newRun()
         game.appear(at: start)
         let question = game.currentQuestion!
-        game.answer(question.correctAnswer, for: question.id, at: start.addingTimeInterval(120))
+        game.answer(question.correctAnswer, for: question.id, at: start.advanced(by: .seconds(120)))
         XCTAssertEqual(game.outcome, .timedOut(correct: question.correctAnswer))
         XCTAssertEqual(game.winnings, 0)
         XCTAssertEqual(game.questionsAnswered, 0)
@@ -223,7 +233,7 @@ final class GameSessionTests: XCTestCase {
         var game = newRun()
         game.appear(at: start)
         let options = game.visibleOptions
-        game.useHint(for: game.currentQuestion!.id, at: start.addingTimeInterval(120))
+        game.useHint(for: game.currentQuestion!.id, at: start.advanced(by: .seconds(120)))
         XCTAssertEqual(game.outcome, .timedOut(correct: game.currentQuestion!.correctAnswer))
         XCTAssertEqual(game.hintsRemaining, 3)
         XCTAssertEqual(game.visibleOptions, options)
@@ -285,9 +295,9 @@ final class GameSessionTests: XCTestCase {
         game.appear(at: start)
         game.useHint(for: game.currentQuestion!.id, at: start)
         advance(&game, count: 4, at: start)
-        game.refresh(at: start.addingTimeInterval(600))
+        game.refresh(at: start.advanced(by: .seconds(600)))
         game = newRun() // Same reset operation used by GameView.
-        let restart = start.addingTimeInterval(1_000)
+        let restart = start.advanced(by: .seconds(1_000))
         game.appear(at: restart)
         XCTAssertEqual(game.winnings, 0)
         XCTAssertEqual(game.questionsAnswered, 0)
@@ -295,7 +305,7 @@ final class GameSessionTests: XCTestCase {
         XCTAssertEqual(game.visibleOptions.count, 4)
         XCTAssertEqual(game.timeRemaining, 120)
         XCTAssertNil(game.outcome)
-        game.refresh(at: restart.addingTimeInterval(1))
+        game.refresh(at: restart.advanced(by: .seconds(1)))
         XCTAssertEqual(game.timeRemaining, 119)
     }
 

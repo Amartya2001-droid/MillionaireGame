@@ -55,15 +55,18 @@ enum GameRules {
     }
 }
 
-/// A deadline keeps delayed publisher events from extending a question's time limit.
+/// Continuous time advances through suspension/sleep without following wall-clock changes.
 struct QuestionTimer {
-    let deadline: Date
+    let deadline: ContinuousClock.Instant
 
-    init(questionIndex: Int, now: Date) {
-        deadline = now.addingTimeInterval(TimeInterval(GameRules.timeLimit(for: questionIndex)))
+    init(questionIndex: Int, now: ContinuousClock.Instant) {
+        deadline = now.advanced(by: .seconds(GameRules.timeLimit(for: questionIndex)))
     }
 
-    func remaining(at now: Date) -> Int {
-        max(0, Int(ceil(deadline.timeIntervalSince(now))))
+    func remaining(at now: ContinuousClock.Instant) -> Int {
+        let remaining = now.duration(to: deadline)
+        guard remaining > .zero else { return 0 }
+        let parts = remaining.components
+        return Int(parts.seconds) + (parts.attoseconds > 0 ? 1 : 0)
     }
 }

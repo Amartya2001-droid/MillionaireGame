@@ -284,7 +284,7 @@ struct GameView: View {
             }
         }
         .onAppear {
-            session.appear(at: Date())
+            session.appear(at: ContinuousClock().now)
             saveBestWinnings()
         }
         .onChange(of: scenePhase) { _, phase in
@@ -318,17 +318,17 @@ struct GameView: View {
     }
 
     private func tick() {
-        session.refresh(at: Date())
+        session.refresh(at: ContinuousClock().now)
         saveBestWinnings()
     }
 
     private func handleAnswer(_ option: String, for questionID: UUID) {
-        session.answer(option, for: questionID, at: Date())
+        session.answer(option, for: questionID, at: ContinuousClock().now)
         saveBestWinnings()
     }
 
     private func useHint(for questionID: UUID) {
-        session.useHint(for: questionID, at: Date())
+        session.useHint(for: questionID, at: ContinuousClock().now)
         saveBestWinnings()
     }
 
@@ -341,7 +341,7 @@ struct GameView: View {
     private func resetGame() {
         let refreshedQuestions = Array(QuestionBank.questions(for: genre).shuffled().prefix(15))
         session = GameSession(questions: refreshedQuestions)
-        session.appear(at: Date())
+        session.appear(at: ContinuousClock().now)
     }
 }
 

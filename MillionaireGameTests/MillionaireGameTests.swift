@@ -122,3 +122,179 @@ final class MillionaireGameTests: XCTestCase {
         }
     }
 }
+
+final class GameSessionTests: XCTestCase {
+    private let start = Date(timeIntervalSince1970: 1_000)
+
+    private func newRun() -> GameSession {
+        GameSession(questions: QuestionBank.questions(for: QuestionBank.genres[0]))
+    }
+
+    private func advance(_ game: inout GameSession, count: Int, at now: Date) {
+        for _ in 0..<count {
+            guard let question = game.currentQuestion else { return XCTFail("Missing question") }
+            game.answer(question.correctAnswer, for: question.id, at: now)
+        }
+    }
+
+    func testFullMillionRunForEveryGenre() {
+        for genre in QuestionBank.genres {
+            var game = GameSession(questions: QuestionBank.questions(for: genre))
+            game.appear(at: start)
+            for index in 0..<15 {
+                XCTAssertEqual(game.currentQuestionIndex, index)
+                XCTAssertEqual(game.questionsAnswered, index)
+                XCTAssertEqual(game.timeRemaining, GameRules.timeLimit(for: index))
+                XCTAssertEqual(Set(game.visibleOptions), Set(game.currentQuestion!.options))
+                advance(&game, count: 1, at: start)
+                XCTAssertEqual(game.winnings, QuestionBank.prizeLadder[index])
+            }
+            XCTAssertEqual(game.outcome, .completed, genre)
+            XCTAssertEqual(game.questionsAnswered, 15)
+            XCTAssertEqual(game.winnings, 1_000_000)
+            game.refresh(at: start.addingTimeInterval(10_000))
+            game.useHint(at: start)
+            XCTAssertEqual(game.outcome, .completed)
+            XCTAssertEqual(game.hintsRemaining, 3)
+        }
+    }
+
+    func testWrongAnswerAtEveryStepKeepsLastEarnedPrizeAndLocksRun() {
+        for index in 0..<15 {
+            var game = newRun()
+            game.appear(at: start)
+            advance(&game, count: index, at: start)
+            let question = game.currentQuestion!
+            let wrong = question.options.first { $0 != question.correctAnswer }!
+            game.answer(wrong, for: question.id, at: start)
+            let outcome = GameOutcome.incorrectAnswer(selected: wrong, correct: question.correctAnswer)
+            XCTAssertEqual(game.outcome, outcome)
+            XCTAssertEqual(game.questionsAnswered, index)
+            XCTAssertEqual(game.winnings, index == 0 ? 0 : QuestionBank.prizeLadder[index - 1])
+            game.answer(question.correctAnswer, for: question.id, at: start)
+            game.useHint(at: start)
+            game.appear(at: start.addingTimeInterval(1_000))
+            XCTAssertEqual(game.outcome, outcome)
+            XCTAssertEqual(game.currentQuestionIndex, index)
+            XCTAssertEqual(game.hintsRemaining, 3)
+        }
+    }
+
+    func testBackgroundExpiryAtEveryStepKeepsPrizeAndCorrectCount() {
+        for index in 0..<15 {
+            var game = newRun()
+            game.appear(at: start)
+            advance(&game, count: index, at: start)
+            let question = game.currentQuestion!
+            // No publisher callbacks occur while backgrounded.
+            game.appear(at: start.addingTimeInterval(600))
+            XCTAssertEqual(game.timeRemaining, 0)
+            XCTAssertEqual(game.outcome, .timedOut(correct: question.correctAnswer))
+            XCTAssertEqual(game.questionsAnswered, index)
+            XCTAssertEqual(game.winnings, index == 0 ? 0 : QuestionBank.prizeLadder[index - 1])
+        }
+    }
+
+    func testShortBackgroundAndRepeatedAppearDoNotRestartDeadline() {
+        var game = newRun()
+        game.appear(at: start)
+        game.appear(at: start.addingTimeInterval(50))
+        XCTAssertEqual(game.timeRemaining, 70)
+        game.refresh(at: start.addingTimeInterval(50))
+        XCTAssertEqual(game.timeRemaining, 70)
+        game.appear(at: start.addingTimeInterval(119.5))
+        XCTAssertEqual(game.timeRemaining, 1)
+        XCTAssertNil(game.outcome)
+        game.refresh(at: start.addingTimeInterval(120))
+        XCTAssertNotNil(game.outcome)
+    }
+
+    func testExpiredAnswerCannotAwardPrizeBeforeNextPublisherTick() {
+        var game = newRun()
+        game.appear(at: start)
+        let question = game.currentQuestion!
+        game.answer(question.correctAnswer, for: question.id, at: start.addingTimeInterval(120))
+        XCTAssertEqual(game.outcome, .timedOut(correct: question.correctAnswer))
+        XCTAssertEqual(game.winnings, 0)
+        XCTAssertEqual(game.questionsAnswered, 0)
+    }
+
+    func testExpiredHintCannotConsumeBudgetBeforeNextPublisherTick() {
+        var game = newRun()
+        game.appear(at: start)
+        let options = game.visibleOptions
+        game.useHint(at: start.addingTimeInterval(120))
+        XCTAssertEqual(game.outcome, .timedOut(correct: game.currentQuestion!.correctAnswer))
+        XCTAssertEqual(game.hintsRemaining, 3)
+        XCTAssertEqual(game.visibleOptions, options)
+    }
+
+    func testHintsKeepCorrectOptionAndCanOnlyBeSpentOncePerQuestion() {
+        var game = newRun()
+        game.appear(at: start)
+        for remaining in [2, 1, 0] {
+            let question = game.currentQuestion!
+            game.useHint(at: start)
+            XCTAssertEqual(game.visibleOptions.count, 2)
+            XCTAssertTrue(game.visibleOptions.contains(question.correctAnswer))
+            XCTAssertEqual(game.hintsRemaining, remaining)
+            game.useHint(at: start)
+            XCTAssertEqual(game.hintsRemaining, remaining)
+            game.answer(question.correctAnswer, for: question.id, at: start)
+            XCTAssertEqual(game.visibleOptions.count, 4)
+        }
+        game.useHint(at: start)
+        XCTAssertEqual(game.visibleOptions.count, 4)
+        XCTAssertEqual(game.hintsRemaining, 0)
+    }
+
+    func testStaleOrRemovedAnswersDoNotChangeScoreOrEndRun() {
+        var game = newRun()
+        game.appear(at: start)
+        let first = game.currentQuestion!
+        game.useHint(at: start)
+        let removed = first.options.first { !game.visibleOptions.contains($0) }!
+        game.answer(removed, for: first.id, at: start)
+        XCTAssertEqual(game.winnings, 0)
+        XCTAssertNil(game.outcome)
+        game.answer(first.correctAnswer, for: first.id, at: start)
+        game.answer(first.correctAnswer, for: first.id, at: start)
+        XCTAssertEqual(game.currentQuestionIndex, 1)
+        XCTAssertEqual(game.winnings, QuestionBank.prizeLadder[0])
+        XCTAssertNil(game.outcome)
+    }
+
+    func testReplayStartsFreshWithNewDeadlineAndHintBudget() {
+        var game = newRun()
+        game.appear(at: start)
+        game.useHint(at: start)
+        advance(&game, count: 4, at: start)
+        game.refresh(at: start.addingTimeInterval(600))
+        game = newRun() // Same reset operation used by GameView.
+        let restart = start.addingTimeInterval(1_000)
+        game.appear(at: restart)
+        XCTAssertEqual(game.winnings, 0)
+        XCTAssertEqual(game.questionsAnswered, 0)
+        XCTAssertEqual(game.hintsRemaining, 3)
+        XCTAssertEqual(game.visibleOptions.count, 4)
+        XCTAssertEqual(game.timeRemaining, 120)
+        XCTAssertNil(game.outcome)
+        game.refresh(at: restart.addingTimeInterval(1))
+        XCTAssertEqual(game.timeRemaining, 119)
+    }
+
+    func testEmptyAndNotYetPresentedRunsCannotBePlayed() {
+        var empty = GameSession(questions: [])
+        empty.appear(at: start)
+        empty.refresh(at: start)
+        empty.useHint(at: start)
+        XCTAssertNil(empty.currentQuestion)
+        XCTAssertNil(empty.outcome)
+        var game = newRun()
+        let question = game.currentQuestion!
+        game.answer(question.correctAnswer, for: question.id, at: start)
+        game.useHint(at: start)
+        XCTAssertEqual(game.winnings, 0)
+        XCTAssertEqual(game.hintsRemaining, 3)
+    }
+}

@@ -280,6 +280,43 @@ final class GameSessionTests: XCTestCase {
         XCTAssertTrue(game.visibleOptions.contains(current.correctAnswer))
     }
 
+    func testReplayRejectsAnswerFromPreviousRunEvenWhenQuestionIsTheSame() {
+        let bank = QuestionBank.questions(for: QuestionBank.genres[0])
+        var previous = GameSession(questions: bank)
+        previous.appear(at: start)
+        let oldQuestion = previous.currentQuestion!
+        var replay = GameSession(questions: bank)
+        replay.appear(at: start)
+        let question = replay.currentQuestion!
+        XCTAssertNotEqual(question.id, oldQuestion.id)
+        XCTAssertEqual(question.text, oldQuestion.text)
+        XCTAssertEqual(question.options, oldQuestion.options)
+        XCTAssertEqual(question.correctAnswer, oldQuestion.correctAnswer)
+        replay.answer(oldQuestion.correctAnswer, for: oldQuestion.id, at: start)
+        XCTAssertEqual(replay.winnings, 0)
+        XCTAssertEqual(replay.questionsAnswered, 0)
+        XCTAssertNil(replay.outcome)
+        replay.answer(question.correctAnswer, for: question.id, at: start)
+        XCTAssertEqual(replay.winnings, QuestionBank.prizeLadder[0])
+        XCTAssertEqual(replay.questionsAnswered, 1)
+    }
+
+    func testReplayRejectsHintFromPreviousRunEvenWhenQuestionIsTheSame() {
+        let bank = QuestionBank.questions(for: QuestionBank.genres[0])
+        let oldQuestion = GameSession(questions: bank).currentQuestion!
+        var replay = GameSession(questions: bank)
+        replay.appear(at: start)
+        let question = replay.currentQuestion!
+        let options = replay.visibleOptions
+        replay.useHint(for: oldQuestion.id, at: start)
+        XCTAssertEqual(replay.visibleOptions, options)
+        XCTAssertEqual(replay.hintsRemaining, 3)
+        replay.useHint(for: question.id, at: start)
+        XCTAssertEqual(replay.hintsRemaining, 2)
+        XCTAssertEqual(replay.visibleOptions.count, 2)
+        XCTAssertTrue(replay.visibleOptions.contains(question.correctAnswer))
+    }
+
     func testReplayStartsFreshWithNewDeadlineAndHintBudget() {
         var game = newRun()
         game.appear(at: start)

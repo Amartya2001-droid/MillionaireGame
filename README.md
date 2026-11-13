@@ -15,6 +15,8 @@ MillionaireGame is a SwiftUI iOS quiz app inspired by "Who Wants to Be a Million
 
 CI selects an available iPhone simulator from the active Xcode installation instead of requiring a particular model name. The merged timer commit (`3d0a0ae`) initially failed CI because the runner had no matching iPhone 16; see [the failed run](https://github.com/Amartya2001-droid/MillionaireGame/actions/runs/43322905782). Check the build badge for the current result.
 
+Each run assigns fresh question identities, including replay with the same bank order. Queued answers and hints from a previous run cannot affect the new run; question text, choices, answers, and genres are unchanged.
+
 ## Highlights
 
 - Built with SwiftUI for iOS

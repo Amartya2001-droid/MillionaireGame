@@ -24,13 +24,19 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      - name: Test simulator selection
+        run: python3 -m unittest discover -s scripts/tests -v
+
+      - name: Select available iPhone simulator
+        run: python3 scripts/select_simulator.py >> "$GITHUB_ENV"
+
       - name: Build app for iOS Simulator
         run: |
           xcodebuild \
             -project MillionaireGame.xcodeproj \
             -scheme MillionaireGame \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "platform=iOS Simulator,id=${{ env.IOS_SIMULATOR_UDID }}" \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             CODE_SIGNING_ALLOWED=NO \
             build
@@ -41,7 +47,7 @@ jobs:
             -project MillionaireGame.xcodeproj \
             -scheme MillionaireGame \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "platform=iOS Simulator,id=${{ env.IOS_SIMULATOR_UDID }}" \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             CODE_SIGNING_ALLOWED=NO \
             test

@@ -66,19 +66,19 @@ struct GameSession {
     }
 
     // Reappearing/foregrounding never restarts an existing deadline.
-    mutating func appear(at now: Date) {
+    mutating func appear(at now: ContinuousClock.Instant) {
         guard currentQuestion != nil, outcome == nil else { return }
         if questionTimer == nil { startQuestion(at: now) }
         refresh(at: now)
     }
 
-    mutating func refresh(at now: Date) {
+    mutating func refresh(at now: ContinuousClock.Instant) {
         guard outcome == nil, let question = currentQuestion, let questionTimer else { return }
         timeRemaining = questionTimer.remaining(at: now)
         if timeRemaining == 0 { outcome = .timedOut(correct: question.correctAnswer) }
     }
 
-    mutating func answer(_ option: String, for questionID: UUID, at now: Date) {
+    mutating func answer(_ option: String, for questionID: UUID, at now: ContinuousClock.Instant) {
         refresh(at: now)
         guard outcome == nil, questionTimer != nil, let question = currentQuestion,
               GameRules.canAcceptAnswer(option, for: questionID,
@@ -97,7 +97,7 @@ struct GameSession {
         }
     }
 
-    mutating func useHint(for questionID: UUID, at now: Date) {
+    mutating func useHint(for questionID: UUID, at now: ContinuousClock.Instant) {
         refresh(at: now)
         guard outcome == nil, questionTimer != nil, let question = currentQuestion,
               questionID == question.id,
@@ -106,7 +106,7 @@ struct GameSession {
         hintsRemaining -= 1
     }
 
-    private mutating func startQuestion(at now: Date) {
+    private mutating func startQuestion(at now: ContinuousClock.Instant) {
         questionTimer = QuestionTimer(questionIndex: currentQuestionIndex, now: now)
         timeRemaining = GameRules.timeLimit(for: currentQuestionIndex)
     }

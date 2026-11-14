@@ -2,6 +2,23 @@ import XCTest
 @testable import MillionaireGame
 
 final class MillionaireGameTests: XCTestCase {
+    func testPrizeCurrencyStaysDollarsAcrossDeviceLocales() {
+        XCTAssertEqual(GameRules.prizeString(1_000_000, locale: Locale(identifier: "en_US")), "$1,000,000")
+        for identifier in ["de_DE", "fr_FR", "ja_JP", "en_GB"] {
+            let prize = GameRules.prizeString(1_000_000, locale: Locale(identifier: identifier))
+            XCTAssertTrue(prize.contains("$") || prize.contains("USD"), "\(identifier): \(prize)")
+            XCTAssertFalse(prize.contains("€") || prize.contains("£") || prize.contains("¥"), prize)
+        }
+    }
+
+    func testPrizeFormattingKeepsLocaleGroupingAndWholeScores() {
+        XCTAssertEqual(GameRules.prizeString(0, locale: Locale(identifier: "en_US")), "$0")
+        let german = GameRules.prizeString(1_000_000, locale: Locale(identifier: "de_DE"))
+        XCTAssertTrue(german.contains("1.000.000"), german)
+        XCTAssertFalse(german.contains(",00"), german)
+        XCTAssertEqual(GameRules.prizeString(1_000, locale: Locale(identifier: "en_US")), "$1,000")
+    }
+
     func testRegistrationValidationAcceptsCompleteInput() {
         XCTAssertTrue(
             GameRules.isValidRegistration(
@@ -166,6 +183,31 @@ final class GameSessionTests: XCTestCase {
             game.useHint(for: game.currentQuestion!.id, at: start)
             XCTAssertEqual(game.outcome, .completed)
             XCTAssertEqual(game.hintsRemaining, 3)
+        }
+    }
+
+    func testEveryGenreAndQuestionRotationCompletesWithHintsAcrossAllTiers() {
+        for genre in QuestionBank.genres {
+            let bank = QuestionBank.questions(for: genre)
+            for offset in 0..<bank.count {
+                let ordered = Array(bank.dropFirst(offset)) + Array(bank.prefix(offset))
+                var game = GameSession(questions: ordered)
+                game.appear(at: start)
+                for index in 0..<QuestionBank.prizeLadder.count {
+                    let question = game.currentQuestion!
+                    XCTAssertEqual(game.timeRemaining, GameRules.timeLimit(for: index))
+                    if index % 5 == 0 {
+                        game.useHint(for: question.id, at: start)
+                        XCTAssertEqual(game.visibleOptions.count, 2)
+                        XCTAssertTrue(game.visibleOptions.contains(question.correctAnswer))
+                    }
+                    game.answer(question.correctAnswer, for: question.id, at: start)
+                    XCTAssertEqual(game.winnings, QuestionBank.prizeLadder[index])
+                }
+                XCTAssertEqual(game.outcome, .completed, "\(genre) rotation \(offset)")
+                XCTAssertEqual(game.questionsAnswered, 15)
+                XCTAssertEqual(game.hintsRemaining, 0)
+            }
         }
     }
 

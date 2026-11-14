@@ -107,9 +107,6 @@ extension Color {
 
 extension Int {
     var currencyString: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: self)) ?? "$\(self)"
+        GameRules.prizeString(self)
     }
 }

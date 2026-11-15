@@ -24,6 +24,16 @@ enum GameRules {
         }
     }
 
+    static func prizeString(_ amount: Int, locale: Locale = .current) -> String {
+        let formatter = NumberFormatter()
+        formatter.locale = locale
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 0
+        return formatter.string(from: NSNumber(value: amount)) ?? "$\(amount)"
+    }
+
     static func validationMessage(isValid: Bool) -> String {
         isValid
             ? "You can update these details any time before starting a run."

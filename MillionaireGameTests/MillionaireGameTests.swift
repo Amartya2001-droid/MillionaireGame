@@ -369,6 +369,48 @@ final class GameSessionTests: XCTestCase {
         XCTAssertTrue(replay.visibleOptions.contains(question.correctAnswer))
     }
 
+    private func withIsolatedScoreStore(_ body: (UserDefaults) -> Void) {
+        let suite = "MillionaireGame.ScoreTests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        body(defaults)
+    }
+
+    func testEarnedBestSurvivesLeavingBeforeTheRunEnds() {
+        withIsolatedScoreStore { defaults in
+            var game = newRun()
+            game.appear(at: start)
+            advance(&game, count: 3, at: start)
+            XCTAssertNil(game.outcome)
+            game.recordBestWinnings(in: defaults) // Same recording path as GameView after an answer.
+            game = newRun() // The previous in-memory run is abandoned.
+            XCTAssertEqual(game.winnings, 0)
+            XCTAssertEqual(defaults.integer(forKey: "bestWinnings"), QuestionBank.prizeLadder[2])
+        }
+    }
+
+    func testScoreStoreOnlyMovesUpAcrossActiveAndFinishedRuns() {
+        withIsolatedScoreStore { defaults in
+            var bestRun = newRun()
+            bestRun.appear(at: start)
+            advance(&bestRun, count: 5, at: start)
+            bestRun.recordBestWinnings(in: defaults)
+            XCTAssertEqual(defaults.integer(forKey: "bestWinnings"), QuestionBank.prizeLadder[4])
+            var lowerRun = newRun()
+            lowerRun.appear(at: start)
+            lowerRun.recordBestWinnings(in: defaults)
+            advance(&lowerRun, count: 1, at: start)
+            lowerRun.recordBestWinnings(in: defaults)
+            lowerRun.refresh(at: start.advanced(by: .seconds(600)))
+            lowerRun.recordBestWinnings(in: defaults)
+            XCTAssertEqual(defaults.integer(forKey: "bestWinnings"), QuestionBank.prizeLadder[4])
+            advance(&bestRun, count: 10, at: start)
+            XCTAssertEqual(bestRun.outcome, .completed)
+            bestRun.recordBestWinnings(in: defaults)
+            XCTAssertEqual(defaults.integer(forKey: "bestWinnings"), 1_000_000)
+        }
+    }
+
     func testReplayStartsFreshWithNewDeadlineAndHintBudget() {
         var game = newRun()
         game.appear(at: start)

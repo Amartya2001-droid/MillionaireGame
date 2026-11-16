@@ -110,6 +110,12 @@ struct GameSession {
         hintsRemaining -= 1
     }
 
+    func recordBestWinnings(in defaults: UserDefaults) {
+        if winnings > defaults.integer(forKey: "bestWinnings") {
+            defaults.set(winnings, forKey: "bestWinnings")
+        }
+    }
+
     private mutating func startQuestion(at now: ContinuousClock.Instant) {
         questionTimer = QuestionTimer(questionIndex: currentQuestionIndex, now: now)
         timeRemaining = GameRules.timeLimit(for: currentQuestionIndex)

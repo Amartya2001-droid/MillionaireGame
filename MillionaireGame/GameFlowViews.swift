@@ -169,7 +169,6 @@ struct GameView: View {
     let player: PlayerProfile
     let genre: String
 
-    @AppStorage("bestWinnings") private var bestWinnings = 0
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
 
@@ -333,9 +332,7 @@ struct GameView: View {
     }
 
     private func saveBestWinnings() {
-        if session.outcome != nil, session.winnings > bestWinnings {
-            bestWinnings = session.winnings
-        }
+        session.recordBestWinnings(in: .standard)
     }
 
     private func resetGame() {

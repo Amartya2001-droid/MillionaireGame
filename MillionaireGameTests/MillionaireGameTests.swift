@@ -114,6 +114,22 @@ final class MillionaireGameTests: XCTestCase {
         XCTAssertTrue(GameRules.isValidRegistration(firstName: "A", lastName: "B", email: "  a+quiz@example.co.uk  "))
     }
 
+    func testRegistrationRejectsInvalidUnquotedLocalPartCharacters() {
+        let invalid = ["a<b>@example.com", "a,b@example.com", "a:b@example.com",
+                       "a;b@example.com", "a(b)@example.com", "a\\b@example.com",
+                       "a\"b@example.com", "a\u{0000}b@example.com", "a\u{007F}b@example.com"]
+        for email in invalid {
+            XCTAssertFalse(GameRules.isValidRegistration(firstName: "A", lastName: "B", email: email), email)
+        }
+    }
+
+    func testRegistrationKeepsSupportedAtomPunctuationAndPlusAddressing() {
+        for email in ["o'hara+quiz@example.co.uk", "a!#$%&'*+-/=?^_`{|}~z@example.com",
+                      "  first.last+game@example.com  ", "josé+quiz@example.com", "用户@example.com"] {
+            XCTAssertTrue(GameRules.isValidRegistration(firstName: "A", lastName: "B", email: email), email)
+        }
+    }
+
     func testHintLeavesTwoChoicesForDifferentOptionCounts() {
         for options in [["A", "B", "C"], ["A", "B", "C", "D", "E"]] {
             let reduced = GameRules.reducedOptions(from: options, keeping: "C")

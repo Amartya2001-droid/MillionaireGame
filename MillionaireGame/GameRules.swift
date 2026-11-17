@@ -17,6 +17,11 @@ enum GameRules {
               !parts[0].hasPrefix("."), !parts[0].hasSuffix("."),
               !parts[0].contains("..") else { return false }
 
+        // Quoted mailboxes/display names are not supported by this simple entry form.
+        let forbiddenLocalCharacters = CharacterSet(charactersIn: "()<>[]:;,\"\\")
+            .union(.controlCharacters)
+        guard parts[0].unicodeScalars.allSatisfy({ !forbiddenLocalCharacters.contains($0) }) else { return false }
+
         let labels = parts[1].split(separator: ".", omittingEmptySubsequences: false)
         return labels.count >= 2 && labels.allSatisfy { label in
             !label.isEmpty && !label.hasPrefix("-") && !label.hasSuffix("-") &&

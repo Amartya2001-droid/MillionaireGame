@@ -189,6 +189,7 @@ struct GameView: View {
             MillionaireBackground()
 
             if let outcome = session.outcome {
+                let resultQuestionID = session.currentQuestion?.id
                 ResultsView(
                     playerName: player.firstName,
                     genre: genre,
@@ -196,7 +197,7 @@ struct GameView: View {
                     questionsAnswered: session.questionsAnswered,
                     didWinMillion: outcome == .completed,
                     message: outcome.message,
-                    onPlayAgain: resetGame,
+                    onPlayAgain: { resetGame(after: resultQuestionID) },
                     onChooseGenre: { dismiss() }
                 )
             } else if session.questions.isEmpty {
@@ -335,10 +336,9 @@ struct GameView: View {
         session.recordBestWinnings(in: .standard)
     }
 
-    private func resetGame() {
+    private func resetGame(after questionID: UUID?) {
         let refreshedQuestions = Array(QuestionBank.questions(for: genre).shuffled().prefix(15))
-        session = GameSession(questions: refreshedQuestions)
-        session.appear(at: ContinuousClock().now)
+        session.replay(questions: refreshedQuestions, after: questionID, at: ContinuousClock().now)
     }
 }
 

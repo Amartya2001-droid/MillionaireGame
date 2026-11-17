@@ -427,15 +427,70 @@ final class GameSessionTests: XCTestCase {
         }
     }
 
+    func testRepeatedOldReplayCallbackDoesNotEraseNewRunProgress() {
+        let bank = QuestionBank.questions(for: QuestionBank.genres[0])
+        var game = GameSession(questions: bank)
+        game.appear(at: start)
+        advance(&game, count: 15, at: start)
+        let finishedID = game.currentQuestion!.id
+        game.replay(questions: bank, after: finishedID, at: start)
+        advance(&game, count: 1, at: start)
+        let activeID = game.currentQuestion!.id
+        game.useHint(for: activeID, at: start)
+        let options = game.visibleOptions
+        let later = start.advanced(by: .seconds(12))
+        game.refresh(at: later)
+        game.replay(questions: bank, after: finishedID, at: later)
+        XCTAssertEqual(game.currentQuestion!.id, activeID)
+        XCTAssertEqual(game.currentQuestionIndex, 1)
+        XCTAssertEqual(game.winnings, QuestionBank.prizeLadder[0])
+        XCTAssertEqual(game.hintsRemaining, 2)
+        XCTAssertEqual(game.timeRemaining, 108)
+        XCTAssertEqual(game.visibleOptions, options)
+        XCTAssertNil(game.outcome)
+    }
+
+    func testOldReplayCallbackCannotResetADifferentFinishedRun() {
+        let bank = QuestionBank.questions(for: QuestionBank.genres[0])
+        var game = GameSession(questions: bank)
+        game.appear(at: start)
+        advance(&game, count: 15, at: start)
+        let oldID = game.currentQuestion!.id
+        game.replay(questions: bank, after: oldID, at: start)
+        advance(&game, count: 15, at: start)
+        let currentID = game.currentQuestion!.id
+        game.replay(questions: bank, after: oldID, at: start)
+        XCTAssertEqual(game.outcome, .completed)
+        XCTAssertEqual(game.winnings, 1_000_000)
+        XCTAssertEqual(game.currentQuestion!.id, currentID)
+        game.replay(questions: bank, after: currentID, at: start)
+        XCTAssertNil(game.outcome)
+        XCTAssertEqual(game.winnings, 0)
+        XCTAssertEqual(game.timeRemaining, 120)
+    }
+
+    func testActiveRunCannotReplayEvenWithItsCurrentQuestionID() {
+        let bank = QuestionBank.questions(for: QuestionBank.genres[0])
+        var game = GameSession(questions: bank)
+        game.appear(at: start)
+        advance(&game, count: 1, at: start)
+        let currentID = game.currentQuestion!.id
+        game.replay(questions: bank, after: currentID, at: start)
+        XCTAssertEqual(game.currentQuestion!.id, currentID)
+        XCTAssertEqual(game.winnings, QuestionBank.prizeLadder[0])
+        XCTAssertEqual(game.currentQuestionIndex, 1)
+    }
+
     func testReplayStartsFreshWithNewDeadlineAndHintBudget() {
         var game = newRun()
         game.appear(at: start)
         game.useHint(for: game.currentQuestion!.id, at: start)
         advance(&game, count: 4, at: start)
         game.refresh(at: start.advanced(by: .seconds(600)))
-        game = newRun() // Same reset operation used by GameView.
+        let finishedID = game.currentQuestion!.id
         let restart = start.advanced(by: .seconds(1_000))
-        game.appear(at: restart)
+        game.replay(questions: QuestionBank.questions(for: QuestionBank.genres[0]),
+                    after: finishedID, at: restart)
         XCTAssertEqual(game.winnings, 0)
         XCTAssertEqual(game.questionsAnswered, 0)
         XCTAssertEqual(game.hintsRemaining, 3)

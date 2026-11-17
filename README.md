@@ -20,6 +20,8 @@ CI selects an available iPhone simulator from the active Xcode installation inst
 
 Each run assigns fresh question identities, including replay with the same bank order. Queued answers and hints from a previous run cannot affect the new run; question text, choices, answers, and genres are unchanged.
 
+Replay commands are accepted only for the matching finished run. Repeated or stale Play Again callbacks cannot reset an active run or a later results screen.
+
 ## Highlights
 
 - Built with SwiftUI for iOS

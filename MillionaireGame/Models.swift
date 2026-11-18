@@ -110,6 +110,12 @@ struct GameSession {
         hintsRemaining -= 1
     }
 
+    mutating func replay(questions: [GameQuestion], after questionID: UUID?, at now: ContinuousClock.Instant) {
+        guard outcome != nil, let questionID, currentQuestion?.id == questionID else { return }
+        self = GameSession(questions: questions)
+        appear(at: now)
+    }
+
     func recordBestWinnings(in defaults: UserDefaults) {
         if winnings > defaults.integer(forKey: "bestWinnings") {
             defaults.set(winnings, forKey: "bestWinnings")

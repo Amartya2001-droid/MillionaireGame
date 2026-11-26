@@ -193,6 +193,7 @@ final class GameSessionTests: XCTestCase {
                 XCTAssertEqual(game.winnings, QuestionBank.prizeLadder[index])
             }
             XCTAssertEqual(game.outcome, .completed, genre)
+            XCTAssertTrue(game.didWinMillion, genre)
             XCTAssertEqual(game.questionsAnswered, 15)
             XCTAssertEqual(game.winnings, 1_000_000)
             game.refresh(at: start.advanced(by: .seconds(10_000)))
@@ -221,9 +222,52 @@ final class GameSessionTests: XCTestCase {
                     XCTAssertEqual(game.winnings, QuestionBank.prizeLadder[index])
                 }
                 XCTAssertEqual(game.outcome, .completed, "\(genre) rotation \(offset)")
+                XCTAssertTrue(game.didWinMillion)
                 XCTAssertEqual(game.questionsAnswered, 15)
                 XCTAssertEqual(game.hintsRemaining, 0)
             }
+        }
+    }
+
+    func testIncompleteLaddersCompleteWithoutClaimingMillion() {
+        let bank = QuestionBank.questions(for: QuestionBank.genres[0])
+        for count in 1..<QuestionBank.prizeLadder.count {
+            var game = GameSession(questions: Array(bank.prefix(count)))
+            game.appear(at: start)
+            advance(&game, count: count, at: start)
+            XCTAssertEqual(game.outcome, .completed)
+            XCTAssertEqual(game.questionsAnswered, count)
+            XCTAssertEqual(game.winnings, QuestionBank.prizeLadder[count - 1])
+            XCTAssertFalse(game.didWinMillion, "A \(count)-question ladder is not a million-win")
+        }
+    }
+
+    func testEmptyLadderCannotClaimMillion() {
+        var game = GameSession(questions: [])
+        game.appear(at: start)
+        game.refresh(at: start.advanced(by: .seconds(600)))
+        XCTAssertNil(game.outcome)
+        XCTAssertNil(game.currentQuestion)
+        XCTAssertEqual(game.winnings, 0)
+        XCTAssertFalse(game.didWinMillion)
+    }
+
+    func testFullAndOverlengthLaddersWinMillionOnlyAfterFinalAnswer() {
+        let bank = QuestionBank.questions(for: QuestionBank.genres[0])
+        let pool = bank + [bank[0]]
+        for count in [15, 16] {
+            var game = GameSession(questions: Array(pool.prefix(count)))
+            game.appear(at: start)
+            XCTAssertEqual(game.questions.count, QuestionBank.prizeLadder.count)
+            XCTAssertFalse(game.didWinMillion)
+            advance(&game, count: 14, at: start)
+            XCTAssertEqual(game.winnings, 750_000)
+            XCTAssertFalse(game.didWinMillion)
+            advance(&game, count: 1, at: start)
+            XCTAssertEqual(game.outcome, .completed)
+            XCTAssertEqual(game.questionsAnswered, 15)
+            XCTAssertEqual(game.winnings, 1_000_000)
+            XCTAssertTrue(game.didWinMillion)
         }
     }
 

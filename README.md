@@ -10,6 +10,7 @@ MillionaireGame is a SwiftUI iOS quiz app inspired by "Who Wants to Be a Million
 - Prize labels use US-dollar game scores with localized grouping and no fractional cents. Changing the device locale does not change the prize currency or convert scores.
 - A new best prize score is recorded as soon as it is earned, including runs left with Back before an ending. Lower later scores do not overwrite it; this saves the best score, not an in-progress run.
 - Email entry rejects control characters and unquoted mailbox delimiters while retaining plus addressing, apostrophes, and Unicode local parts. Quoted mailboxes/display names are not supported. This is a basic syntax check, not mailbox or domain ownership verification.
+- The million-win result requires completing the full prize ladder at its top prize. A shorter question list can finish at its earned score without being presented as winning the million. The shipped genres each have 15 questions.
 - Registration details stay in memory; there is no account service or server leaderboard. Prizes are game scores, not real-money payouts.
 - Live URL: **not live yet — blocked by an iOS distribution/release setup**. No App Store or TestFlight URL is recorded in this repository.
 - Historical Day 2 baseline: merged main (`9fd9557`) passed the simulator build and iOS unit tests in [iOS Build](https://github.com/Amartya2001-droid/MillionaireGame/actions/runs/42916062697), completed November 10, 2026. This was verified from CI, not built locally on Linux.

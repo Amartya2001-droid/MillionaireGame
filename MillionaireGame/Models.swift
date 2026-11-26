@@ -69,6 +69,12 @@ struct GameSession {
         outcome == .completed ? questions.count : currentQuestionIndex
     }
 
+    var didWinMillion: Bool {
+        outcome == .completed &&
+            questions.count == QuestionBank.prizeLadder.count &&
+            winnings == QuestionBank.prizeLadder.last
+    }
+
     // Reappearing/foregrounding never restarts an existing deadline.
     mutating func appear(at now: ContinuousClock.Instant) {
         guard currentQuestion != nil, outcome == nil else { return }

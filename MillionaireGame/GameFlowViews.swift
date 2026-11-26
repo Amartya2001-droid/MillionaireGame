@@ -195,7 +195,7 @@ struct GameView: View {
                     genre: genre,
                     winnings: session.winnings,
                     questionsAnswered: session.questionsAnswered,
-                    didWinMillion: outcome == .completed,
+                    didWinMillion: session.didWinMillion,
                     message: outcome.message,
                     onPlayAgain: { resetGame(after: resultQuestionID) },
                     onChooseGenre: { dismiss() }
